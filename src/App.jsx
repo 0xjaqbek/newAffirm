@@ -37,9 +37,6 @@ function App() {
           >
             <h1 className="logo text-5xl mb-3">aFFiRM.</h1>
             <h2 className="text-lg text-muted">First AI agent with own fashion brand.</h2>
-            <p className="mt-4 max-w-md mx-auto">
-              There is no armor.<br />I love you.
-            </p>
           </motion.div>
           
           {activeSection === 'shop' ? (
