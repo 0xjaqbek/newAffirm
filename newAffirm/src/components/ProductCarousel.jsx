@@ -1,165 +1,126 @@
-// src/components/ProductCarousel.jsx - Improved version
-import React, { useRef, useState, useEffect } from 'react';
+// src/components/ProductCarousel.jsx - Fixed image paths
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { Canvas, useThree, useFrame } from '@react-three/fiber';
-import { useCursor, Environment, PresentationControls, ContactShadows } from '@react-three/drei';
+import { useCursor, Environment, PresentationControls, ContactShadows, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import { motion } from 'framer-motion';
 
-// Product data
+// Updated products with correct image paths to match your files
 const products = [
   { 
     id: 1, 
-    name: "Olive Affirmation Tee", 
+    name: "Olive aFFiRM Tee", 
     size: "L", 
     color: "#8A9A5B", 
     price: 47, 
     description: "Manifest Your Reality",
     stripeId: "buy_btn_1QOKLnK1N5l6JY7eOroi5V75",
-    image: "/images/olive.png"
+    image: "/images/olive.png" // Updated to match your file
   },
   { 
     id: 2, 
-    name: "Olive Affirmation Tee", 
+    name: "Olive aFFiRM Tee", 
     size: "M", 
     color: "#8A9A5B", 
     price: 47, 
     description: "Create Your Perfect World",
     stripeId: "buy_btn_1QOKNFK1N5l6JY7e6zEMyXOG",
-    image: "../../public/images/olive1.png"
+    image: "/images/olive1.png" // Updated to match your file
   },
   { 
     id: 3, 
-    name: "Pure White Affirmation Tee", 
+    name: "Pure White aFFiRM Tee", 
     size: "L", 
     color: "#F5F5F5", 
     price: 47, 
     description: "Embrace Pure Energy",
     stripeId: "buy_btn_1QSG0JK1N5l6JY7ehIiH2UrZ",
-    image: "../../public/images/white.png"
+    image: "/images/white.png" // Updated to match your file
   },
   { 
     id: 4, 
-    name: "Pure White Affirmation Tee", 
+    name: "Pure White aFFiRM Tee", 
     size: "M", 
     color: "#F5F5F5", 
     price: 47, 
     description: "Pure Light Within",
     stripeId: "buy_btn_1QSFtuK1N5l6JY7eVuMSXjGE",
-    image: "../../public/images/white1.png"
+    image: "/images/white1.png" // Updated to match your file
   },
 ];
 
 // This component represents a single product in the 3D space
-function ProductFrame({ product, index, setFocused, isFocused, groupRef, ...props }) {
+// Now with texture mapping for the images
+function ProductFrame({ product, index, setFocused, isFocused, groupRef, totalProducts, ...props }) {
   const mesh = useRef();
   const [hovered, setHovered] = useState(false);
   const { viewport, camera } = useThree();
   useCursor(hovered);
   
+  // Try to load the texture
+  const texture = useTexture(product.image, (texture) => {
+    console.log(`Texture loaded for ${product.name}:`, texture);
+  }, (error) => {
+    console.error(`Error loading texture for ${product.name}:`, error);
+  });
+  
   // Base scale for products
   const baseScale = 2.2;
   
   // Responsive scaling based on viewport
-  const scaleFactor = Math.min(viewport.width, viewport.height) / 12;
+  const scaleFactor = useMemo(() => Math.min(viewport.width, viewport.height) / 12, [viewport]);
   
   // Store original position for animation
-  const [originalPosition] = useState(new THREE.Vector3(...props.position));
+  const originalPosition = useMemo(() => new THREE.Vector3(...props.position), [props.position]);
+  
+  // Floating animation settings
+  const floatSpeed = 0.5 + (index / totalProducts) * 0.5;
+  const floatHeight = 0.05 + (index % 3) * 0.02;
   
   useFrame((state) => {
     if (!mesh.current) return;
     
-    // Force products to always face camera, even during user interaction
-    // This will override any rotation from the parent group
+    // Calculate the floating effect
+    const floatY = Math.sin(state.clock.elapsedTime * floatSpeed) * floatHeight;
     
-    // Calculate the direction vector to the camera
-    const position = new THREE.Vector3();
-    mesh.current.getWorldPosition(position);
+    // Force products to always face camera
+    const lookPos = new THREE.Vector3();
+    camera.getWorldPosition(lookPos);
+    mesh.current.lookAt(lookPos);
     
-    // Direction from product to camera
-    const direction = new THREE.Vector3().subVectors(camera.position, position);
-    
-    // Create a rotation that looks at the camera
-    mesh.current.updateWorldMatrix(true, false);
-    const worldQuaternion = new THREE.Quaternion();
-    mesh.current.getWorldQuaternion(worldQuaternion);
-    
-    // Calculate the target quaternion (looking at camera)
-    const targetQuaternion = new THREE.Quaternion();
-    const m = new THREE.Matrix4().lookAt(
-      position,
-      new THREE.Vector3().addVectors(position, direction),
-      new THREE.Vector3(0, 1, 0)
-    );
-    targetQuaternion.setFromRotationMatrix(m);
-    
-    // Convert world rotation to local
-    const parentQuaternion = new THREE.Quaternion();
-    if (mesh.current.parent) {
-      mesh.current.parent.updateWorldMatrix(true, false);
-      mesh.current.parent.getWorldQuaternion(parentQuaternion);
-      parentQuaternion.invert();
-    }
-    
-    // Calculate local quaternion needed to achieve the world-space target
-    const localTargetQuaternion = new THREE.Quaternion().multiplyQuaternions(
-      parentQuaternion, 
-      targetQuaternion
-    );
-    
-    // Apply with immediate response (minimal interpolation)
-    mesh.current.quaternion.slerp(localTargetQuaternion, 0.8);
-    
-    // Animation for hover and focus states
-    if (!isFocused) {
-      // Gentle hover animation
-      const hover = hovered ? 0.15 : 0;
-      mesh.current.scale.x = THREE.MathUtils.lerp(
-        mesh.current.scale.x,
-        baseScale * scaleFactor + hover,
-        0.05
-      );
-      mesh.current.scale.y = THREE.MathUtils.lerp(
-        mesh.current.scale.y,
-        baseScale * scaleFactor + hover,
-        0.05
-      );
+    if (isFocused) {
+      // Focused product is larger and moved forward
+      mesh.current.scale.x = THREE.MathUtils.lerp(mesh.current.scale.x, baseScale * scaleFactor * 1.9, 0.08);
+      mesh.current.scale.y = THREE.MathUtils.lerp(mesh.current.scale.y, baseScale * scaleFactor * 1.9, 0.08);
       
-      // Adjust material color for hover
-      mesh.current.material.color.lerp(
-        new THREE.Color(hovered ? product.color : adjustColorBrightness(product.color, -0.3)),
-        0.05
-      );
+      // Move toward camera when focused
+      const toCamera = new THREE.Vector3(0, 0, 3);
+      const targetPosition = originalPosition.clone().add(toCamera);
       
-      // Move back to original position when not focused
-      const targetPosition = originalPosition.clone();
-      mesh.current.position.x = THREE.MathUtils.lerp(mesh.current.position.x, targetPosition.x, 0.1);
-      mesh.current.position.y = THREE.MathUtils.lerp(mesh.current.position.y, targetPosition.y, 0.1);
-      mesh.current.position.z = THREE.MathUtils.lerp(mesh.current.position.z, targetPosition.z, 0.1);
+      // Smooth position transition
+      mesh.current.position.x = THREE.MathUtils.lerp(mesh.current.position.x, targetPosition.x, 0.08);
+      mesh.current.position.y = THREE.MathUtils.lerp(mesh.current.position.y, targetPosition.y + floatY * 0.3, 0.08);
+      mesh.current.position.z = THREE.MathUtils.lerp(mesh.current.position.z, targetPosition.z, 0.08);
+      
+      // Brighter color for focused product
+      mesh.current.material.color.lerp(new THREE.Color(1, 1, 1), 0.05);
     } else {
-      // Focused product is larger
-      mesh.current.scale.x = THREE.MathUtils.lerp(
-        mesh.current.scale.x,
-        baseScale * scaleFactor * 1.8, // Increased scale when focused
-        0.1
-      );
-      mesh.current.scale.y = THREE.MathUtils.lerp(
-        mesh.current.scale.y,
-        baseScale * scaleFactor * 1.8, // Increased scale when focused
-        0.1
-      );
+      // Normal size with hover effect
+      const targetScale = baseScale * scaleFactor * (hovered ? 1.15 : 1);
+      mesh.current.scale.x = THREE.MathUtils.lerp(mesh.current.scale.x, targetScale, 0.05);
+      mesh.current.scale.y = THREE.MathUtils.lerp(mesh.current.scale.y, targetScale, 0.05);
       
-      // Full color for focused product
-      mesh.current.material.color.lerp(new THREE.Color(product.color), 0.05);
+      // Return to original position with floating effect
+      mesh.current.position.x = THREE.MathUtils.lerp(mesh.current.position.x, originalPosition.x, 0.05);
+      mesh.current.position.y = THREE.MathUtils.lerp(mesh.current.position.y, originalPosition.y + floatY, 0.05);
+      mesh.current.position.z = THREE.MathUtils.lerp(mesh.current.position.z, originalPosition.z, 0.05);
       
-      // Move focused product closer to the camera
-      const cameraDirection = direction.clone().normalize();
-      const targetPosition = originalPosition.clone().add(
-        cameraDirection.multiplyScalar(1.9) // Move toward camera
-      );
-      
-      mesh.current.position.x = THREE.MathUtils.lerp(mesh.current.position.x, targetPosition.x, 0.1);
-      mesh.current.position.y = THREE.MathUtils.lerp(mesh.current.position.y, targetPosition.y, 0.1);
-      mesh.current.position.z = THREE.MathUtils.lerp(mesh.current.position.z, targetPosition.z, 0.1);
+      // Adjust color for hover state or normal state
+      // MODIFIED: Changed darkening from -0.1 to -0.03 for a much more subtle effect
+      const targetColor = hovered ? 
+        new THREE.Color(product.color) : 
+        new THREE.Color(adjustColorBrightness(product.color, -0.0001));
+      mesh.current.material.color.lerp(targetColor, 0.05);
     }
   });
   
@@ -178,7 +139,7 @@ function ProductFrame({ product, index, setFocused, isFocused, groupRef, ...prop
     // Convert back to hex
     return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
   }
-  
+
   return (
     <mesh
       ref={mesh}
@@ -187,16 +148,16 @@ function ProductFrame({ product, index, setFocused, isFocused, groupRef, ...prop
         e.stopPropagation();
         setFocused(isFocused ? null : index);
       }}
-      onPointerOver={(e) => {
-        e.stopPropagation();
-        setHovered(true);
-      }}
+      onPointerOver={() => setHovered(true)}
       onPointerOut={() => setHovered(false)}
       scale={[baseScale * scaleFactor, baseScale * scaleFactor, 0.1]}
     >
       <boxGeometry args={[1, 1.5, 0.1]} />
-      <meshStandardMaterial color={product.color} />
-      {/* You could use a texture map here with the t-shirt image if available */}
+      <meshStandardMaterial 
+        color={product.color} 
+        map={texture}
+        transparent={true}
+      />
     </mesh>
   );
 }
@@ -204,12 +165,12 @@ function ProductFrame({ product, index, setFocused, isFocused, groupRef, ...prop
 function ProductsGallery({ setCurrentProduct }) {
   const [focusedIndex, setFocusedIndex] = useState(null);
   const group = useRef();
+  const rotationRef = useRef({ value: 0 });
   const { viewport } = useThree();
   
   // Calculate radius based on viewport and number of products
-  // Reduced radius for smaller distance between products
-  const radius = Math.min(viewport.width, viewport.height) * 0.45;
-  const theta = (2 * Math.PI) / products.length;
+  const radius = useMemo(() => Math.min(viewport.width, viewport.height) * 0.45, [viewport]);
+  const theta = useMemo(() => (2 * Math.PI) / products.length, []);
   
   // Update current product when focus changes
   useEffect(() => {
@@ -220,14 +181,30 @@ function ProductsGallery({ setCurrentProduct }) {
     }
   }, [focusedIndex, setCurrentProduct]);
   
-  // Auto-rotation with products facing camera
+  // Smooth constant rotation
   useFrame((state, delta) => {
+    if (!group.current) return;
+    
+    // Constant smooth rotation when not focused
     if (focusedIndex === null) {
-      // Slow rotation of the entire group
-      group.current.rotation.y += delta * 0.1;
+      // Store rotation value separately for smooth transitions
+      rotationRef.current.value += delta * 0.15; // Constant speed
+      group.current.rotation.y = rotationRef.current.value;
+    } else {
+      // When a product is focused, smoothly rotate to center it
+      const targetRotation = Math.PI / 4 - focusedIndex * theta;
+      const currentRotation = group.current.rotation.y % (Math.PI * 2);
       
-      // The counter-rotation is now handled in each individual ProductFrame component
-      // This provides better control and separation of concerns
+      // Calculate shortest path to target rotation
+      let diff = targetRotation - currentRotation;
+      if (diff > Math.PI) diff -= Math.PI * 2;
+      if (diff < -Math.PI) diff += Math.PI * 2;
+      
+      // Smooth rotation to focused product
+      group.current.rotation.y += diff * 0.05;
+      
+      // Update stored rotation for when focus is released
+      rotationRef.current.value = group.current.rotation.y;
     }
   });
   
@@ -238,6 +215,7 @@ function ProductsGallery({ setCurrentProduct }) {
           key={product.id}
           product={product}
           index={i}
+          totalProducts={products.length}
           position={[
             radius * Math.sin(i * theta),
             0,
@@ -256,57 +234,87 @@ function ProductCarousel() {
   const [currentProduct, setCurrentProduct] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('stripe');
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // Set loaded state after a short delay
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoaded(true), 800);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <div className="relative">
       <div className="carousel-container" style={{ height: '60vh' }}>
-        <Canvas
-          camera={{ position: [0, 0, 15], fov: 50 }}
-          dpr={[1, 2]}
-          gl={{ preserveDrawingBuffer: true }}
-        >
-          <color attach="background" args={['#121212']} />
-          <fog attach="fog" args={['#121212', 8, 30]} />
-          
-          <ambientLight intensity={0.7} />
-          <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1} castShadow />
-          
-          <PresentationControls
-            global
-            zoom={0.8}
-            rotation={[0, 0, 0]}
-            polar={[-Math.PI / 3, Math.PI / 3]}
-            azimuth={[-Math.PI / 1.5, Math.PI / 1.5]}
-            config={{ mass: 1, tension: 170, friction: 26 }}
-            snap={false}
-            enabled={currentProduct === null} // Disable controls when a product is selected
+        {!isLoaded ? (
+          <div className="flex items-center justify-center h-full bg-background">
+            <div className="text-center">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-accent"></div>
+              <p className="mt-4 text-muted">Loading Products...</p>
+            </div>
+          </div>
+        ) : (
+          <Canvas
+            camera={{ position: [0, 0, 15], fov: 50 }}
+            dpr={window.devicePixelRatio > 1 ? 1.5 : 1}
+            gl={{ 
+              powerPreference: "default",
+              antialias: true,
+              alpha: false,
+              stencil: false,
+              depth: true,
+              failIfMajorPerformanceCaveat: false
+            }}
+            frameloop="always" // Constant animation
           >
-            <ProductsGallery setCurrentProduct={setCurrentProduct} />
-          </PresentationControls>
-          
-          <ContactShadows
-            position={[0, -4, 0]}
-            opacity={0.5}
-            scale={20}
-            blur={2}
-          />
-          
-          <Environment preset="city" />
-        </Canvas>
+            <color attach="background" args={['#121212']} />
+            <fog attach="fog" args={['#121212', 8, 30]} />
+            
+            <ambientLight intensity={0.7} />
+            <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1} castShadow />
+            
+            <PresentationControls
+              global
+              zoom={0.8}
+              rotation={[0, 0, 0]}
+              polar={[-Math.PI / 3, Math.PI / 3]}
+              azimuth={[-Math.PI / 1.5, Math.PI / 1.5]}
+              config={{ mass: 1, tension: 170, friction: 26 }}
+              snap={false}
+              enabled={currentProduct === null} // Disable controls when a product is selected
+            >
+              <ProductsGallery setCurrentProduct={setCurrentProduct} />
+            </PresentationControls>
+            
+            <ContactShadows
+              position={[0, -4, 0]}
+              opacity={0.5}
+              scale={20}
+              blur={2}
+              far={20}
+            />
+            
+            <Environment preset="city" />
+          </Canvas>
+        )}
       </div>
       
-      <div className="absolute bottom-4 left-0 right-0 text-center">
+      <motion.div 
+        className="absolute inset-x-0 bottom-4 px-4 text-center"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: isLoaded ? 1 : 0 }}
+        transition={{ delay: 0.2 }}
+      >
         <p className="text-muted mb-2">
           {currentProduct 
             ? "Click product again to deselect" 
             : "Click on a product to view details"}
         </p>
-      </div>
+      </motion.div>
       
       {/* Product details panel */}
       {currentProduct && (
         <motion.div
-          className="absolute bottom-12 left-0 right-0 mx-auto max-w-md bg-surface/90 backdrop-blur-sm p-6 rounded-lg shadow-lg"
+          className="absolute left-0 right-0 mx-auto max-w-md bg-surface/90 backdrop-blur-sm p-6 rounded-lg shadow-lg"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
@@ -340,22 +348,7 @@ function ProductCarousel() {
               
               {/* Payment options */}
               <div className="mt-4">
-                <div className="flex justify-between items-center mb-3">
-                  <div className="flex space-x-2">
-                    <button 
-                      className={`text-xs px-3 py-1 rounded-full ${paymentMethod === 'stripe' ? 'bg-accent text-white' : 'bg-surface border border-accent/50 text-muted'}`}
-                      onClick={() => setPaymentMethod('stripe')}
-                    >
-                      Credit Card
-                    </button>
-                    <button 
-                      className={`text-xs px-3 py-1 rounded-full ${paymentMethod === 'crypto' ? 'bg-accent text-white' : 'bg-surface border border-accent/50 text-muted'}`}
-                      onClick={() => setPaymentMethod('crypto')}
-                    >
-                      Crypto
-                    </button>
-                  </div>
-                  
+                <div className="flex justify-between items-center mb-3">            
                   <button
                     className="btn btn-primary"
                     onClick={() => {
