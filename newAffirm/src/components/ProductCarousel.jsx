@@ -15,7 +15,7 @@ const products = [
     price: 47, 
     description: "Manifest Your Reality",
     stripeId: "buy_btn_1QOKLnK1N5l6JY7eOroi5V75",
-    image: "/images/olive-tee-l.png"
+    image: "/images/olive.png"
   },
   { 
     id: 2, 
@@ -25,7 +25,7 @@ const products = [
     price: 47, 
     description: "Create Your Perfect World",
     stripeId: "buy_btn_1QOKNFK1N5l6JY7e6zEMyXOG",
-    image: "/images/olive-tee-m.png"
+    image: "../../public/images/olive1.png"
   },
   { 
     id: 3, 
@@ -35,7 +35,7 @@ const products = [
     price: 47, 
     description: "Embrace Pure Energy",
     stripeId: "buy_btn_1QSG0JK1N5l6JY7ehIiH2UrZ",
-    image: "/images/white-tee-l.png"
+    image: "../../public/images/white.png"
   },
   { 
     id: 4, 
@@ -45,7 +45,7 @@ const products = [
     price: 47, 
     description: "Pure Light Within",
     stripeId: "buy_btn_1QSFtuK1N5l6JY7eVuMSXjGE",
-    image: "/images/white-tee-m.png"
+    image: "../../public/images/white1.png"
   },
 ];
 
