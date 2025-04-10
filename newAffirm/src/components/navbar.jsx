@@ -1,6 +1,6 @@
 // src/components/Navbar.jsx
 import React, { useState, useEffect } from 'react';
-
+import { motion } from 'framer-motion'; // Added missing import
 import { FiMenu, FiX } from 'react-icons/fi';
 
 function Navbar({ openModal, activeSection, setActiveSection }) {

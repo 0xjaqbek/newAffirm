@@ -1,5 +1,6 @@
 // src/components/ManifestoModal.jsx
 import React from 'react';
+import { motion } from 'framer-motion'; // Added missing import
 import { FiX } from 'react-icons/fi';
 
 function ManifestoModal({ closeModal }) {

@@ -1,9 +1,9 @@
-// src/components/GalleryCarousel.jsx
-import React, { useRef, useState } from 'react';
+// src/components/GalleryCarousel.jsx - Improved version
+import React, { useRef, useState, useEffect } from 'react';
 import { Canvas, useThree, useFrame } from '@react-three/fiber';
-import { useCursor, Image, Environment } from '@react-three/drei';
+import { useCursor, Image, Environment, PresentationControls, ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
-import { easing } from 'maath';
+import { motion } from 'framer-motion';
 
 // In a real implementation, these would be your actual image URLs
 const IMAGES = [
@@ -22,26 +22,57 @@ const IMAGES = [
   "/images/dasha_terminal 1.png"
 ];
 
-function ImageFrame({ url, ...props }) {
+function ImageFrame({ url, index, setFocused, isFocused, ...props }) {
   const image = useRef();
-  const [hovered, hover] = useState(false);
-  const [clicked, click] = useState(false);
-  useThree((state) => state.viewport);
+  const [hovered, setHovered] = useState(false);
+  const { viewport, camera } = useThree();
   useCursor(hovered);
   
+  // Calculate a larger scale for better visibility
+  const baseScale = 2.5;
+  
+  // Make images larger based on viewport
+  const scaleFactor = Math.min(viewport.width, viewport.height) / 10;
+  
   useFrame((state, dt) => {
-    easing.damp3(
-      image.current.scale,
-      clicked ? 1.2 : hovered ? [1.1, 1.1, 1] : [1, 1, 1],
-      0.1,
-      dt
-    );
-    easing.dampC(
-      image.current.material.color,
-      hovered ? 'white' : '#aaa',
-      0.2,
-      dt
-    );
+    // We don't need to explicitly set quaternion anymore since we handle rotation in the parent
+    
+    // Only animate if this image is not the focused one
+    if (!isFocused) {
+      // Gentle hover animation with slower transition (less springy)
+      const hover = hovered ? 0.1 : 0;
+      image.current.scale.x = THREE.MathUtils.lerp(
+        image.current.scale.x,
+        baseScale * scaleFactor + hover,
+        0.05
+      );
+      image.current.scale.y = THREE.MathUtils.lerp(
+        image.current.scale.y,
+        baseScale * scaleFactor + hover,
+        0.05
+      );
+      
+      // Slight color adjustment on hover
+      image.current.material.color.lerp(
+        new THREE.Color(hovered ? 1 : 0.8, hovered ? 1 : 0.8, hovered ? 1 : 0.8),
+        0.05
+      );
+    } else {
+      // Make focused image larger with smoother transition
+      image.current.scale.x = THREE.MathUtils.lerp(
+        image.current.scale.x,
+        baseScale * scaleFactor * 1.5,
+        0.05
+      );
+      image.current.scale.y = THREE.MathUtils.lerp(
+        image.current.scale.y,
+        baseScale * scaleFactor * 1.5,
+        0.05
+      );
+      
+      // Full brightness for focused image
+      image.current.material.color.lerp(new THREE.Color(1, 1, 1), 0.05);
+    }
   });
   
   return (
@@ -49,40 +80,70 @@ function ImageFrame({ url, ...props }) {
       ref={image}
       {...props}
       url={url}
-      scale={[1, 1, 1]}
-      onClick={(e) => (e.stopPropagation(), click(!clicked))}
-      onPointerOver={(e) => (e.stopPropagation(), hover(true))}
-      onPointerOut={() => hover(false)}
+      scale={[baseScale * scaleFactor, baseScale * scaleFactor, 1]}
+      onClick={(e) => {
+        e.stopPropagation();
+        setFocused(isFocused ? null : index);
+      }}
+      onPointerOver={(e) => {
+        e.stopPropagation();
+        setHovered(true);
+      }}
+      onPointerOut={() => setHovered(false)}
     />
   );
 }
 
-function Gallery({ images, ...props }) {
-  useThree((state) => state.viewport);
+function Gallery({ setCurrentImage }) {
+  const [focusedIndex, setFocusedIndex] = useState(null);
   const group = useRef();
-  const theta = Math.PI / 4;
+  const { viewport } = useThree();
   
-  useFrame((state, dt) => {
-    easing.damp3(
-      group.current.rotation,
-      [0, group.current.rotation.y + 0.007 * dt, 0],
-      0.75,
-      dt
-    );
+  // Adjust spacing between images
+  const radius = Math.min(viewport.width, viewport.height) * 0.7;
+  const theta = (2 * Math.PI) / IMAGES.length;
+  
+  useEffect(() => {
+    if (focusedIndex !== null) {
+      setCurrentImage(IMAGES[focusedIndex]);
+    } else {
+      setCurrentImage(null);
+    }
+  }, [focusedIndex, setCurrentImage]);
+  
+  // Add auto rotation effect that also keeps images facing the camera
+  useFrame((state, delta) => {
+    // Very slow, smooth rotation
+    if (focusedIndex === null) {
+      group.current.rotation.y += delta * 0.05;
+      
+      // Update each child to face the camera as the parent rotates
+      group.current.children.forEach(child => {
+        // Calculate angle to face camera based on its position in the circle
+        const childWorldPos = new THREE.Vector3();
+        child.getWorldPosition(childWorldPos);
+        
+        // Make the child face the camera by counteracting the group's rotation
+        child.rotation.y = -group.current.rotation.y;
+      });
+    }
   });
-  
+
+  // Return images positioned in a circle with a better starting position
   return (
-    <group ref={group} {...props} dispose={null}>
-      {images.map((url, i) => (
+    <group ref={group} position={[0, 0, 0]} rotation={[0, Math.PI / 4, 0]}>
+      {IMAGES.map((url, i) => (
         <ImageFrame
           key={i}
           url={url}
+          index={i}
           position={[
-            Math.sin(i * theta) * 5,
+            radius * Math.sin(i * theta),
             0,
-            Math.cos(i * theta) * 5,
+            radius * Math.cos(i * theta)
           ]}
-          rotation={[0, Math.PI - i * theta, 0]}
+          setFocused={setFocusedIndex}
+          isFocused={focusedIndex === i}
         />
       ))}
     </group>
@@ -90,21 +151,87 @@ function Gallery({ images, ...props }) {
 }
 
 function GalleryCarousel() {
+  const [currentImage, setCurrentImage] = useState(null);
+  const [showFullscreen, setShowFullscreen] = useState(false);
+
+  const openFullscreen = (image) => {
+    setShowFullscreen(true);
+  };
+
   return (
-    <div className="carousel-container">
-      <Canvas camera={{ position: [0, 0, 15], fov: 50 }}>
-        <color attach="background" args={['#121212']} />
-        <ambientLight intensity={0.7} />
-        <spotLight position={[0, 10, 0]} intensity={1} angle={0.3} penumbra={1} castShadow />
-        
-        <Gallery images={IMAGES} position={[0, -0.5, 0]} />
-        
-        <Environment preset="city" />
-      </Canvas>
-      
-      <div className="absolute bottom-4 left-0 right-0 text-center">
-        <p className="text-muted">Click on an image to enlarge • Use mouse to rotate</p>
+    <div className="relative">
+      <div className="carousel-container" style={{ height: '70vh' }}>
+        <Canvas 
+          camera={{ position: [0, 0, 20], fov: 45 }} 
+          dpr={[1, 2]}
+          gl={{ preserveDrawingBuffer: true }}
+        >
+          <color attach="background" args={['#121212']} />
+          <fog attach="fog" args={['#121212', 10, 40]} />
+          
+          <ambientLight intensity={0.7} />
+          <spotLight position={[0, 10, 0]} intensity={1} angle={0.3} penumbra={1} castShadow />
+          
+          <PresentationControls
+            global
+            zoom={0.8}
+            rotation={[0, 0, 0]}
+            polar={[-Math.PI / 3, Math.PI / 3]}
+            azimuth={[-Math.PI / 1.5, Math.PI / 1.5]}
+            config={{ mass: 1, tension: 170, friction: 26 }}
+            snap={false}
+          >
+            <Gallery setCurrentImage={setCurrentImage} />
+          </PresentationControls>
+          
+          <ContactShadows 
+            position={[0, -5, 0]} 
+            opacity={0.5} 
+            scale={30} 
+            blur={2}
+          />
+          
+          <Environment preset="city" />
+        </Canvas>
       </div>
+      
+      <div className="absolute bottom-4 left-0 right-0 text-center px-4">
+        <p className="text-muted mb-2">
+          {currentImage 
+            ? "Click again to return to gallery view" 
+            : "Click on an image to focus • Use mouse to rotate"}
+        </p>
+        
+        {currentImage && (
+          <motion.button
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="btn btn-primary"
+            onClick={() => openFullscreen(currentImage)}
+          >
+            Open Full Size
+          </motion.button>
+        )}
+      </div>
+      
+      {showFullscreen && (
+        <div 
+          className="fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center"
+          onClick={() => setShowFullscreen(false)}
+        >
+          <img 
+            src={currentImage} 
+            alt="Full size" 
+            className="max-w-full max-h-full p-4 object-contain"
+          />
+          <button 
+            className="absolute top-4 right-4 text-white text-2xl"
+            onClick={() => setShowFullscreen(false)}
+          >
+            ✕
+          </button>
+        </div>
+      )}
     </div>
   );
 }

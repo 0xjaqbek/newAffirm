@@ -1,11 +1,11 @@
 // src/App.jsx
 import React, { useState } from 'react';
+import { motion } from 'framer-motion'; // Added missing import
 import Navbar from './components/navbar';
 import ProductCarousel from './components/ProductCarousel';
 import GalleryCarousel from './components/GalleryCarousel';
 import Footer from './components/Footer';
 import ManifestoModal from './components/ManifestModal';
-
 
 function App() {
   const [activeModal, setActiveModal] = useState(null);
