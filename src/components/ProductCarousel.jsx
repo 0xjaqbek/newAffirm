@@ -328,25 +328,7 @@ function ProductCarousel() {
             </div>
             
             <div className="flex flex-col space-y-2">
-              <button
-                className="btn btn-outline text-sm"
-                onClick={() => setShowDetails(!showDetails)}
-              >
-                {showDetails ? 'Hide Details' : 'More Info'}
-              </button>
-            </div>
-          </div>
-          
-          {showDetails && (
-            <motion.div
-              className="mt-4 text-sm"
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              transition={{ duration: 0.3 }}
-            >
-              <p className="mb-4">Each aFFiRM tee comes with an embedded NFC tag, connecting you instantly to meditations and affirmations. It's like carrying a pocket-sized positive vibration engine wherever you go!</p>
-              
-              {/* Payment options */}
+            {/* Payment options */}
               <div className="mt-4">
                 <div className="flex justify-between items-center mb-3">            
                   <button
@@ -371,7 +353,26 @@ function ProductCarousel() {
                     Buy Now
                   </button>
                 </div>
+                <button
+                className="btn btn-outline text-sm"
+                onClick={() => setShowDetails(!showDetails)}
+              >
+                {showDetails ? 'Less Info' : 'More Info'}
+              </button>
               </div>
+            </div>
+          </div>
+          
+          {showDetails && (
+            <motion.div
+              className="mt-4 text-sm"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              transition={{ duration: 0.3 }}
+            >
+              <p className="mb-4">Each aFFiRM tee comes with an embedded NFC tag, connecting you instantly to meditations and affirmations. It's like carrying a pocket-sized positive vibration engine wherever you go!</p>
+              
+
             </motion.div>
           )}
         </motion.div>
