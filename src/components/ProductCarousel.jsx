@@ -1,9 +1,11 @@
-// src/components/ProductCarousel.jsx - Fixed image paths
+// src/components/ProductCarousel.jsx
 import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { Canvas, useThree, useFrame } from '@react-three/fiber';
 import { useCursor, Environment, PresentationControls, ContactShadows, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import { motion } from 'framer-motion';
+import MobileCarousel from './MobileCarousel'; // Import our new mobile component
+import { useMobileDetector } from '../hooks/useMobileDetector'; // Import our hook
 
 // Updated products with correct image paths to match your files
 const products = [
@@ -15,7 +17,7 @@ const products = [
     price: 47, 
     description: "Manifest Your Reality",
     stripeId: "buy_btn_1QOKLnK1N5l6JY7eOroi5V75",
-    image: "images/olive.png" // Updated to match your file
+    image: "images/olive.png"
   },
   { 
     id: 2, 
@@ -25,7 +27,7 @@ const products = [
     price: 47, 
     description: "Create Your Perfect World",
     stripeId: "buy_btn_1QOKNFK1N5l6JY7e6zEMyXOG",
-    image: "images/olive1.png" // Updated to match your file
+    image: "images/olive1.png"
   },
   { 
     id: 3, 
@@ -35,7 +37,7 @@ const products = [
     price: 47, 
     description: "Embrace Pure Energy",
     stripeId: "buy_btn_1QSG0JK1N5l6JY7ehIiH2UrZ",
-    image: "images/white.png" // Updated to match your file
+    image: "images/white.png"
   },
   { 
     id: 4, 
@@ -45,12 +47,11 @@ const products = [
     price: 47, 
     description: "Pure Light Within",
     stripeId: "buy_btn_1QSFtuK1N5l6JY7eVuMSXjGE",
-    image: "images/white1.png" // Updated to match your file
+    image: "images/white1.png"
   },
 ];
 
 // This component represents a single product in the 3D space
-// Now with texture mapping for the images
 function ProductFrame({ product, index, setFocused, isFocused, groupRef, totalProducts, ...props }) {
   const mesh = useRef();
   const [hovered, setHovered] = useState(false);
@@ -116,7 +117,6 @@ function ProductFrame({ product, index, setFocused, isFocused, groupRef, totalPr
       mesh.current.position.z = THREE.MathUtils.lerp(mesh.current.position.z, originalPosition.z, 0.05);
       
       // Adjust color for hover state or normal state
-      // MODIFIED: Changed darkening from -0.1 to -0.03 for a much more subtle effect
       const targetColor = hovered ? 
         new THREE.Color(product.color) : 
         new THREE.Color(adjustColorBrightness(product.color, -0.0001));
@@ -162,6 +162,7 @@ function ProductFrame({ product, index, setFocused, isFocused, groupRef, totalPr
   );
 }
 
+// Products Gallery component for the 3D version
 function ProductsGallery({ setCurrentProduct }) {
   const [focusedIndex, setFocusedIndex] = useState(null);
   const group = useRef();
@@ -230,11 +231,12 @@ function ProductsGallery({ setCurrentProduct }) {
   );
 }
 
+// Main component with conditional rendering based on device
 function ProductCarousel() {
   const [currentProduct, setCurrentProduct] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('stripe');
   const [isLoaded, setIsLoaded] = useState(false);
+  const isMobile = useMobileDetector(); // Use our custom hook
 
   // Set loaded state after a short delay
   useEffect(() => {
@@ -242,6 +244,12 @@ function ProductCarousel() {
     return () => clearTimeout(timer);
   }, []);
 
+  // If on a mobile device, render the mobile-friendly carousel
+  if (isMobile) {
+    return <MobileCarousel items={products} type="product" />;
+  }
+
+  // Otherwise, render the 3D carousel for desktop
   return (
     <div className="relative">
       <div className="carousel-container" style={{ height: '60vh' }}>
@@ -264,7 +272,7 @@ function ProductCarousel() {
               depth: true,
               failIfMajorPerformanceCaveat: false
             }}
-            frameloop="always" // Constant animation
+            frameloop="always"
           >
             <color attach="background" args={['#121212']} />
             <fog attach="fog" args={['#121212', 8, 30]} />
@@ -280,7 +288,7 @@ function ProductCarousel() {
               azimuth={[-Math.PI / 1.5, Math.PI / 1.5]}
               config={{ mass: 1, tension: 170, friction: 26 }}
               snap={false}
-              enabled={currentProduct === null} // Disable controls when a product is selected
+              enabled={currentProduct === null}
             >
               <ProductsGallery setCurrentProduct={setCurrentProduct} />
             </PresentationControls>
@@ -328,26 +336,19 @@ function ProductCarousel() {
             </div>
             
             <div className="flex flex-col space-y-2">
-            {/* Payment options */}
               <div className="mt-4">
                 <div className="flex justify-between items-center mb-3">            
                   <button
                     className="btn btn-primary"
                     onClick={() => {
-                      if (paymentMethod === 'stripe') {
-                        // Use the complete links provided
-                        const stripeLinks = {
-                          'buy_btn_1QOKLnK1N5l6JY7eOroi5V75': 'https://buy.stripe.com/9AQ5nH2pVfx7cgMaEI?locale=en&__embed_source=buy_btn_1QOKLnK1N5l6JY7eOroi5V75',
-                          'buy_btn_1QOKNFK1N5l6JY7e6zEMyXOG': 'https://buy.stripe.com/aEU7vP5C7bgRfsY5kp?locale=en&__embed_source=buy_btn_1QOKNFK1N5l6JY7e6zEMyXOG',
-                          'buy_btn_1QSG0JK1N5l6JY7ehIiH2UrZ': 'https://buy.stripe.com/3cs8zT8OjckVeoU28f?locale=en&__embed_source=buy_btn_1QSG0JK1N5l6JY7ehIiH2UrZ',
-                          'buy_btn_1QSFtuK1N5l6JY7eVuMSXjGE': 'https://buy.stripe.com/9AQcQ97KfacN0y428e?locale=en&__embed_source=buy_btn_1QSFtuK1N5l6JY7eVuMSXjGE'
-                        };
-                        
-                        window.open(stripeLinks[currentProduct.stripeId] || '#', '_blank');
-                      } else {
-                        // Open crypto payment modal
-                        alert('Crypto payment option would open here');
-                      }
+                      const stripeLinks = {
+                        'buy_btn_1QOKLnK1N5l6JY7eOroi5V75': 'https://buy.stripe.com/9AQ5nH2pVfx7cgMaEI?locale=en&__embed_source=buy_btn_1QOKLnK1N5l6JY7eOroi5V75',
+                        'buy_btn_1QOKNFK1N5l6JY7e6zEMyXOG': 'https://buy.stripe.com/aEU7vP5C7bgRfsY5kp?locale=en&__embed_source=buy_btn_1QOKNFK1N5l6JY7e6zEMyXOG',
+                        'buy_btn_1QSG0JK1N5l6JY7ehIiH2UrZ': 'https://buy.stripe.com/3cs8zT8OjckVeoU28f?locale=en&__embed_source=buy_btn_1QSG0JK1N5l6JY7ehIiH2UrZ',
+                        'buy_btn_1QSFtuK1N5l6JY7eVuMSXjGE': 'https://buy.stripe.com/9AQcQ97KfacN0y428e?locale=en&__embed_source=buy_btn_1QSFtuK1N5l6JY7eVuMSXjGE'
+                      };
+                      
+                      window.open(stripeLinks[currentProduct.stripeId] || '#', '_blank');
                     }}
                   >
                     Buy Now
@@ -371,8 +372,6 @@ function ProductCarousel() {
               transition={{ duration: 0.3 }}
             >
               <p className="mb-4">Each aFFiRM tee comes with an embedded NFC tag, connecting you instantly to meditations and affirmations. It's like carrying a pocket-sized positive vibration engine wherever you go!</p>
-              
-
             </motion.div>
           )}
         </motion.div>
@@ -381,4 +380,5 @@ function ProductCarousel() {
   );
 }
 
+// Make sure to include this default export
 export default ProductCarousel;

@@ -1,20 +1,34 @@
-// src/components/Navbar.jsx
+// src/components/navbar.jsx
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion'; // Added missing import
+import { motion } from 'framer-motion';
 import { FiMenu, FiX } from 'react-icons/fi';
+import { useMobileDetector } from '../hooks/useMobileDetector';
 
 function Navbar({ openModal, activeSection, setActiveSection }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [showLogoInHeader, setShowLogoInHeader] = useState(false);
+  const isMobile = useMobileDetector();
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
+      // On mobile, we only show the header logo when scrolled past the main logo
+      if (isMobile) {
+        // Assuming the main logo is roughly 300px from the top of the page
+        // You may need to adjust this value based on your layout
+        const mainLogoThreshold = 20;
+        setShowLogoInHeader(window.scrollY > mainLogoThreshold);
+        setScrolled(window.scrollY > 20);
+      } else {
+        // On desktop, we show the logo immediately on scroll
+        setShowLogoInHeader(true);
+        setScrolled(window.scrollY > 20);
+      }
     };
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [isMobile]);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -30,12 +44,20 @@ function Navbar({ openModal, activeSection, setActiveSection }) {
       transition={{ duration: 0.5 }}
     >
       <div className="container flex justify-between items-center">
-        <button 
-          className="logo text-lg hover:opacity-80 transition-opacity"
-          onClick={() => setActiveSection('shop')}
-        >
-          aFFiRM.
-        </button>
+        {/* Conditionally render the logo based on scroll position and device */}
+        {(showLogoInHeader || !isMobile) && (
+          <button 
+            className="logo text-lg hover:opacity-80 transition-opacity"
+            onClick={() => setActiveSection('shop')}
+          >
+            aFFiRM.
+          </button>
+        )}
+        
+        {/* If we're on mobile and not showing the logo, we still need a placeholder for layout */}
+        {isMobile && !showLogoInHeader && (
+          <div className="w-20 opacity-0">placeholder</div>
+        )}
         
         <div className="hidden md:flex items-center space-x-6">
           <button 

@@ -1,9 +1,11 @@
-// src/components/GalleryCarousel.jsx - Refined version with constant smooth movement
+// src/components/GalleryCarousel.jsx
 import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { Canvas, useThree, useFrame } from '@react-three/fiber';
 import { useCursor, Image, Environment, PresentationControls, ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
 import { motion } from 'framer-motion';
+import MobileCarousel from './MobileCarousel'; // Import our new mobile component
+import { useMobileDetector } from '../hooks/useMobileDetector'; // Import our hook
 
 // In a real implementation, these would be your actual image URLs
 const IMAGES = [
@@ -169,11 +171,12 @@ function Gallery({ setCurrentImage }) {
   );
 }
 
-// Main component with improved UI
+// Main component with conditional rendering based on device
 function GalleryCarousel() {
   const [currentImage, setCurrentImage] = useState(null);
   const [showFullscreen, setShowFullscreen] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const isMobile = useMobileDetector(); // Use our custom hook
 
   // Set loaded state after a short delay
   useEffect(() => {
@@ -186,6 +189,12 @@ function GalleryCarousel() {
     setShowFullscreen(true);
   };
 
+  // If on a mobile device, render the mobile-friendly carousel
+  if (isMobile) {
+    return <MobileCarousel items={IMAGES} type="gallery" />;
+  }
+
+  // Otherwise, render the 3D carousel for desktop
   return (
     <div className="relative">
       <div className="carousel-container" style={{ height: '70vh' }}>
@@ -300,4 +309,5 @@ function GalleryCarousel() {
   );
 }
 
+// Make sure to include this default export
 export default GalleryCarousel;
