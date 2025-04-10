@@ -7,19 +7,19 @@ import { motion } from 'framer-motion';
 
 // In a real implementation, these would be your actual image URLs
 const IMAGES = [
-  "/images/2d.png",
-  "/images/140858.jpg",
-  "/images/154706.png",
-  "/images/154959.png",
-  "/images/155301.png",
-  "/images/155800.png",
-  "/images/160144.png",
-  "/images/affirm_knight.png",
-  "/images/AFFIRM3_1.png",
-  "/images/affirmwowods.png",
-  "/images/ai16z_eliza_affirm_store3.png", 
-  "/images/CHILL GUY W T-SHIRT bez tła 2.png",
-  "/images/dasha_terminal 1.png"
+  "images/2d.png",
+  "images/140858.jpg",
+  "images/154706.png",
+  "images/154959.png",
+  "images/155301.png",
+  "images/155800.png",
+  "images/160144.png",
+  "images/affirm_knight.png",
+  "images/AFFIRM3_1.png",
+  "images/affirmwowods.png",
+  "images/ai16z_eliza_affirm_store3.png", 
+  "images/CHILL GUY W T-SHIRT bez tła 2.png",
+  "images/dasha_terminal 1.png"
 ];
 
 // Refined ImageFrame component
