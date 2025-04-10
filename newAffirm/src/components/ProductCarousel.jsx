@@ -94,7 +94,7 @@ function ProductFrame({ product, index, setFocused, isFocused, groupRef, totalPr
       mesh.current.scale.y = THREE.MathUtils.lerp(mesh.current.scale.y, baseScale * scaleFactor * 1.9, 0.08);
       
       // Move toward camera when focused
-      const toCamera = new THREE.Vector3(0, 0, 3);
+      const toCamera = new THREE.Vector3(-1, 0, 0);
       const targetPosition = originalPosition.clone().add(toCamera);
       
       // Smooth position transition
@@ -169,7 +169,7 @@ function ProductsGallery({ setCurrentProduct }) {
   const { viewport } = useThree();
   
   // Calculate radius based on viewport and number of products
-  const radius = useMemo(() => Math.min(viewport.width, viewport.height) * 0.45, [viewport]);
+  const radius = useMemo(() => Math.min(viewport.width, viewport.height) * 0.35, [viewport]);
   const theta = useMemo(() => (2 * Math.PI) / products.length, []);
   
   // Update current product when focus changes

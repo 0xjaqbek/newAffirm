@@ -56,7 +56,7 @@ function ImageFrame({ url, index, setFocused, isFocused, totalImages, ...props }
       image.current.scale.y = THREE.MathUtils.lerp(image.current.scale.y, baseScale * scaleFactor * 1.9, 0.08);
       
       // Move toward camera when focused
-      const toCamera = new THREE.Vector3(0, 0, 3);
+      const toCamera = new THREE.Vector3(3, 3, 3);
       const targetPosition = originalPosition.clone().add(toCamera);
       
       // Smooth position transition
