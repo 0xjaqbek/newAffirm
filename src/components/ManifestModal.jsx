@@ -20,7 +20,7 @@ function ManifestoModal({ closeModal }) {
       }`}>
         <div className="flex justify-between items-center mb-4">
           <h2 className={`text-xl font-display font-bold ${
-            isDark ? 'text-dark-text' : 'text-light-accent'
+            isDark ? 'text-dark-text' : 'text-light-highlight'
           }`}>Manifest.</h2>
           <button
             className={`p-1 hover:${isDark ? 'text-dark-accent' : 'text-light-highlight'}`}

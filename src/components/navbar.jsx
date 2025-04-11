@@ -54,7 +54,7 @@ function Navbar({ openModal, activeSection, setActiveSection }) {
         {/* Conditionally render the logo based on scroll position and device */}
         {(showLogoInHeader || !isMobile) && (
           <button 
-            className={`logo text-lg hover:opacity-80 transition-opacity ${!isDark && 'text-light-accent'}`}
+            className={`logo text-lg hover:opacity-80 transition-opacity ${!isDark && 'text-light-highlight'}`}
             onClick={() => setActiveSection('shop')}
           >
             aFFiRM.
@@ -68,9 +68,11 @@ function Navbar({ openModal, activeSection, setActiveSection }) {
         
         <div className="hidden md:flex items-center space-x-6">
           <button 
-            className={`transition-colors hover:${isDark ? 'text-dark-accent' : 'text-light-highlight'} ${
+            className={`transition-colors px-3 py-1 rounded-full hover:${isDark ? 'text-dark-accent' : 'text-light-highlight'} ${
               activeSection === 'shop' 
-                ? isDark ? 'text-dark-accent' : 'text-light-accent' 
+                ? isDark 
+                  ? 'text-dark-accent' 
+                  : 'text-light-highlight border border-light-border'
                 : isDark ? 'text-dark-text' : 'text-light-contrast'
             }`}
             onClick={() => setActiveSection('shop')}
@@ -78,9 +80,11 @@ function Navbar({ openModal, activeSection, setActiveSection }) {
             Shop
           </button>
           <button 
-            className={`transition-colors hover:${isDark ? 'text-dark-accent' : 'text-light-highlight'} ${
+            className={`transition-colors px-3 py-1 rounded-full hover:${isDark ? 'text-dark-accent' : 'text-light-highlight'} ${
               activeSection === 'gallery' 
-                ? isDark ? 'text-dark-accent' : 'text-light-accent' 
+                ? isDark 
+                  ? 'text-dark-accent' 
+                  : 'text-light-highlight border border-light-border'
                 : isDark ? 'text-dark-text' : 'text-light-contrast'
             }`}
             onClick={() => setActiveSection('gallery')}
@@ -88,7 +92,7 @@ function Navbar({ openModal, activeSection, setActiveSection }) {
             Gallery
           </button>
           <button 
-            className={`transition-colors hover:${isDark ? 'text-dark-accent' : 'text-light-highlight'} ${
+            className={`transition-colors px-3 py-1 rounded-full hover:${isDark ? 'text-dark-accent' : 'text-light-highlight'} ${
               isDark ? 'text-dark-text' : 'text-light-contrast'
             }`}
             onClick={() => openModal('manifesto')}
@@ -123,7 +127,7 @@ function Navbar({ openModal, activeSection, setActiveSection }) {
                 activeSection === 'shop' 
                   ? isDark 
                     ? 'bg-dark-accent/10 text-dark-accent' 
-                    : 'bg-light-highlight/10 text-light-accent'
+                    : 'bg-light-highlight/10 text-light-highlight border border-light-border'
                   : ''
               }`}
               onClick={() => {
@@ -138,7 +142,7 @@ function Navbar({ openModal, activeSection, setActiveSection }) {
                 activeSection === 'gallery' 
                   ? isDark 
                     ? 'bg-dark-accent/10 text-dark-accent' 
-                    : 'bg-light-highlight/10 text-light-accent'
+                    : 'bg-light-highlight/10 text-light-highlight border border-light-border'
                   : ''
               }`}
               onClick={() => {

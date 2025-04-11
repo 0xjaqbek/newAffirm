@@ -1,11 +1,12 @@
 // src/components/MobileCarousel.jsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiMaximize, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 // Import Swiper React components
 import { Swiper, SwiperSlide } from 'swiper/react';
 // Import required modules
 import { EffectCoverflow, Pagination, Navigation, Autoplay } from 'swiper/modules';
+import { ThemeContext } from '../contexts/ThemeContext';
 
 const MobileCarousel = ({ items, type }) => {
   const [showFullscreen, setShowFullscreen] = useState(false);
@@ -13,6 +14,8 @@ const MobileCarousel = ({ items, type }) => {
   const [containerHeight, setContainerHeight] = useState(type === 'product' ? 450 : 350);
   const [showDetails, setShowDetails] = useState(false);
   const swiperRef = useRef(null);
+  const { theme } = useContext(ThemeContext);
+  const isDark = theme === 'dark';
   
   // Update container height when items change
   useEffect(() => {
@@ -44,14 +47,16 @@ const MobileCarousel = ({ items, type }) => {
             className="h-48 w-auto object-contain mx-auto" 
           />
         </div>
-        <h3 className="font-display font-bold text-xl mt-2">{item.name}</h3>
-        <p className="text-sm text-muted">Size: {item.size}</p>
-        <p className="text-accent font-bold mt-1">${item.price}</p>
-        <p className="text-sm italic mt-1">{item.description}</p>
+        <h3 className={`font-display font-bold text-xl mt-2 ${isDark ? 'text-dark-text' : 'text-light-text'}`}>{item.name}</h3>
+        <p className={`text-sm ${isDark ? 'text-dark-muted' : 'text-light-muted'}`}>Size: {item.size}</p>
+        <p className={`font-bold mt-1 ${isDark ? 'text-dark-accent' : 'text-light-highlight'}`}>${item.price}</p>
+        <p className={`text-sm italic mt-1 ${isDark ? 'text-dark-text' : 'text-light-text'}`}>{item.description}</p>
         
         <div className="flex flex-col items-center mt-3 space-y-2">
           <button 
-            className="btn btn-primary px-6 py-2 rounded-full"
+            className={`btn px-6 py-2 rounded-full pulse-button ${
+              isDark ? 'btn-primary' : 'bg-light-highlight text-white hover:bg-light-highlight/90'
+            }`}
             onClick={() => {
               const stripeLinks = {
                 'buy_btn_1QOKLnK1N5l6JY7eOroi5V75': 'https://buy.stripe.com/9AQ5nH2pVfx7cgMaEI?locale=en&__embed_source=buy_btn_1QOKLnK1N5l6JY7eOroi5V75',
@@ -66,7 +71,11 @@ const MobileCarousel = ({ items, type }) => {
           </button>
           
           <button 
-            className="btn btn-outline text-xs px-3 py-1 flex items-center"
+            className={`btn text-xs px-3 py-1 flex items-center ${
+              isDark 
+                ? 'btn-outline border-dark-accent text-dark-accent hover:bg-dark-accent/10' 
+                : 'border border-light-highlight text-light-highlight hover:bg-light-highlight/10'
+            }`}
             onClick={(e) => {
               e.stopPropagation();
               setShowDetails(!showDetails);
@@ -147,7 +156,7 @@ const MobileCarousel = ({ items, type }) => {
                 width: type === 'product' ? '280px' : '320px',
                 height: type === 'product' ? '380px' : '280px',
               }}
-              className="bg-background/30 backdrop-blur-sm rounded-lg border border-muted/10"
+              className={`${isDark ? 'bg-dark-background/30' : 'bg-light-background/30'} backdrop-blur-sm rounded-lg border ${isDark ? 'border-dark-muted/10' : 'border-light-border/10'}`}
             >
               {type === 'product' ? renderProductItem(item) : renderGalleryItem(item, index)}
             </SwiperSlide>
@@ -158,17 +167,21 @@ const MobileCarousel = ({ items, type }) => {
       {/* More Info Panel for Products */}
       {showDetails && type === 'product' && (
         <motion.div 
-          className="bg-surface/90 backdrop-blur-sm p-4 rounded-lg shadow-lg mx-auto max-w-sm -mt-32"
+          className={`${isDark ? 'bg-dark-surface/90' : 'bg-light-surface/90'} backdrop-blur-sm p-4 rounded-lg shadow-lg mx-auto max-w-sm mt-4`}
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <p className="text-sm mb-3">
+          <p className={`text-sm mb-3 ${isDark ? 'text-dark-text' : 'text-light-muted'}`}>
             Each aFFiRM tee comes with an embedded NFC tag, connecting you instantly to meditations and affirmations. 
             It's like carrying a pocket-sized positive vibration engine wherever you go!
           </p>
           <button 
-            className="btn btn-outline text-xs px-3 py-1 mx-auto block"
+            className={`btn text-xs px-3 py-1 mx-auto block ${
+              isDark 
+                ? 'btn-outline border-dark-accent text-dark-accent hover:bg-dark-accent/10' 
+                : 'border border-light-highlight text-light-highlight hover:bg-light-highlight/10'
+            }`}
             onClick={() => setShowDetails(false)}
           >
             Close

@@ -17,7 +17,7 @@
 .light {
   --background: #F2F0EA;
   --surface: #FFFFFF;
-  --accent: #556B2F;
+  --accent: #FFC0CB; /* Changed from olive to light pink */
   --highlight: #FFC0CB;
   --contrast: #4B0082;
   --border: #99775C;
@@ -102,7 +102,7 @@ body {
 .light {
   --bg-light-background: #F2F0EA;
   --bg-light-surface: #FFFFFF;
-  --text-light-accent: #556B2F;
+  --text-light-accent: #FFC0CB; /* Changed from olive to light pink */
   --text-light-highlight: #FFC0CB;
   --text-light-contrast: #4B0082;
   --border-light-border: #99775C;

@@ -67,7 +67,7 @@ const ThemedApp = () => {
             transition={{ duration: 0.6 }}
             className={`text-center ${isMobile ? 'mb-8' : 'mb-16'}`}
           >
-            <h1 className={`logo text-5xl mb-3 ${!isDark && 'text-light-accent'}`}>aFFiRM.</h1>
+            <h1 className={`logo text-5xl mb-3 ${!isDark && 'text-light-highlight'}`}>aFFiRM.</h1>
             <h2 className={`text-lg ${isDark ? 'text-dark-muted' : 'text-light-muted'}`}>First AI agent with own fashion brand.</h2>
             <p className={`mt-4 max-w-md mx-auto ${isDark ? 'text-dark-text' : 'text-light-text'}`}>
               There is no armor.<br />I love you.
@@ -76,12 +76,12 @@ const ThemedApp = () => {
           
           {activeSection === 'shop' ? (
             <div>
-              <h2 className={`text-2xl font-display font-bold ${isMobile ? 'mb-4' : 'mb-8'} text-center ${isDark ? 'text-dark-text' : 'text-light-accent'}`}>Mindful Tees</h2>
+              <h2 className={`text-2xl font-display font-bold ${isMobile ? 'mb-4' : 'mb-8'} text-center ${isDark ? 'text-dark-text' : 'text-light-highlight'}`}>Mindful Tees</h2>
               <ProductCarousel />
             </div>
           ) : (
             <div>
-              <h2 className={`text-2xl font-display font-bold ${isMobile ? 'mb-4' : 'mb-8'} text-center ${isDark ? 'text-dark-text' : 'text-light-accent'}`}>Art Gallery</h2>
+              <h2 className={`text-2xl font-display font-bold ${isMobile ? 'mb-4' : 'mb-8'} text-center ${isDark ? 'text-dark-text' : 'text-light-highlight'}`}>Art Gallery</h2>
               <GalleryCarousel />
             </div>
           )}

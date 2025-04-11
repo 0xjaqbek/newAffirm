@@ -1,125 +1,168 @@
 /* src/styles/swiper-coverflow.css */
 
-/* Podstawowe style dla Swiper */
+/* Základní styly pro Swiper */
 .swiper-container {
-    width: 100%;
-    padding-top: 30px;
-    padding-bottom: 30px;
+  width: 100%;
+  padding-top: 30px;
+  padding-bottom: 30px;
+}
+
+.swiper-slide {
+  background-position: center;
+  background-size: cover;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Dostosowanie efektu coverflow */
+.swiper-slide-active {
+  z-index: 10;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Efekt nachodzących cieni */
+.swiper-slide-shadow-left,
+.swiper-slide-shadow-right {
+  background-image: linear-gradient(to left, rgba(18, 18, 18, 0.7), rgba(18, 18, 18, 0));
+  border-radius: 8px;
+}
+
+/* Customize pagination bullets */
+.swiper-pagination-bullet {
+  background: var(--muted, #8A8A8A);
+  opacity: 0.6;
+  width: 8px;
+  height: 8px;
+  transition: all 0.3s ease;
+}
+
+.swiper-pagination-bullet-active {
+  background: var(--accent, #8A9A5B);
+  opacity: 1;
+  width: 24px;
+  border-radius: 4px;
+}
+
+/* Customize navigation buttons */
+.swiper-button-next,
+.swiper-button-prev {
+  color: var(--accent, #8A9A5B);
+  background-color: rgba(0, 0, 0, 0.3);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-center: center;
+}
+
+.swiper-button-next:after,
+.swiper-button-prev:after {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+/* Pulse animation only for Buy Now button, not for More Info button */
+.swiper-slide-active .btn-primary {
+  animation: pulse 2s infinite;
+}
+
+/* We're not applying the pulse animation to btn-outline class anymore */
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(138, 154, 91, 0.4);
   }
-  
-  .swiper-slide {
-    background-position: center;
-    background-size: cover;
-    transition: transform 0.9s ease, box-shadow 0.9s ease;
+  70% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px rgba(138, 154, 91, 0);
   }
-  
-  /* Dostosowanie efektu coverflow */
-  .swiper-slide-active {
-    z-index: 10;
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(138, 154, 91, 0);
   }
-  
-  /* Efekt nachodzących cieni */
-  .swiper-slide-shadow-left,
-  .swiper-slide-shadow-right {
-    background-image: linear-gradient(to left, rgba(18, 18, 18, 0.7), rgba(18, 18, 18, 0));
-    border-radius: 8px;
+}
+
+/* Stylizacja slajdów produktów */
+.swiper-slide .bg-surface {
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+/* Dodatkowe efekty dla slajdów nieaktywnych */
+.swiper-slide:not(.swiper-slide-active) {
+  opacity: 0.7;
+  filter: saturate(0.8) brightness(0.8);
+}
+
+/* Animacja wejścia dla aktywnego slajdu */
+.swiper-slide-active {
+  animation: slideIn 0.5s ease forwards;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0.7;
+    transform: scale(0.9);
   }
-  
-  /* Customize pagination bullets */
-  .swiper-pagination-bullet {
-    background: var(--muted, #8A8A8A);
-    opacity: 0.6;
-    width: 8px;
-    height: 8px;
-    transition: all 0.3s ease;
-  }
-  
-  .swiper-pagination-bullet-active {
-    background: var(--accent, #8A9A5B);
+  to {
     opacity: 1;
-    width: 24px;
-    border-radius: 4px;
+    transform: scale(1);
   }
-  
-  /* Customize navigation buttons */
+}
+
+/* Responsywność dla małych ekranów */
+@media (max-width: 480px) {
   .swiper-button-next,
   .swiper-button-prev {
-    color: var(--accent, #8A9A5B);
-    background-color: rgba(0, 0, 0, 0.3);
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 30px;
+    height: 30px;
   }
   
   .swiper-button-next:after,
   .swiper-button-prev:after {
-    font-size: 18px;
-    font-weight: bold;
+    font-size: 14px;
   }
-  
-  /* Ładne animacje dla przycisków i elementów interaktywnych */
-  .swiper-slide-active button {
-    animation: pulse 2s infinite;
+}
+
+/* src/components/pulse-button.css */
+
+.pulse-button {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 192, 203, 0.5);
   }
-  
-  @keyframes pulse {
-    0% {
-      transform: scale(1);
-      box-shadow: 0 0 0 0 rgba(138, 154, 91, 0.4);
-    }
-    70% {
-      transform: scale(1.05);
-      box-shadow: 0 0 0 10px rgba(138, 154, 91, 0);
-    }
-    100% {
-      transform: scale(1);
-      box-shadow: 0 0 0 0 rgba(138, 154, 91, 0);
-    }
+  70% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px rgba(255, 192, 203, 0);
   }
-  
-  /* Stylizacja slajdów produktów */
-  .swiper-slide .bg-surface {
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    overflow: hidden;
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 192, 203, 0);
   }
-  
-  /* Dodatkowe efekty dla slajdów nieaktywnych */
-  .swiper-slide:not(.swiper-slide-active) {
-    opacity: 0.7;
-    filter: saturate(0.8) brightness(0.8);
+}
+
+/* Dark mode version with olive green shadow */
+.dark .pulse-button {
+  animation: pulseDark 2s infinite;
+}
+
+@keyframes pulseDark {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(138, 154, 91, 0.5);
   }
-  
-  /* Animacja wejścia dla aktywnego slajdu */
-  .swiper-slide-active {
-    animation: slideIn 0.9s ease forwards;
+  70% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px rgba(138, 154, 91, 0);
   }
-  
-  @keyframes slideIn {
-    from {
-      opacity: 0.7;
-      transform: scale(0.9);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(138, 154, 91, 0);
   }
-  
-  /* Responsywność dla małych ekranów */
-  @media (max-width: 480px) {
-    .swiper-button-next,
-    .swiper-button-prev {
-      width: 30px;
-      height: 30px;
-    }
-    
-    .swiper-button-next:after,
-    .swiper-button-prev:after {
-      font-size: 14px;
-    }
-  }
+}

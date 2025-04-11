@@ -7,19 +7,13 @@ import { ThemeContext } from '../contexts/ThemeContext';
 function Footer() {
   const { theme } = useContext(ThemeContext);
   const isDark = theme === 'dark';
-
-  const handleCopyAddress = () => {
-    const address = "2ep3FcATLGK2TUmpFQrChbgNa5wxc6HF3CHaaPmSvCYm";
-    navigator.clipboard.writeText(address);
-    alert("Copied to clipboard!");
-  };
-
+  
   return (
     <footer className={`${isDark ? 'bg-dark-surface' : 'bg-light-surface'} py-8 mt-20 ${!isDark && 'border-t border-light-border'}`}>
       <div className="container">
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="mb-6 md:mb-0">
-            <div className={`logo text-2xl mb-2 ${!isDark && 'text-light-accent'}`}>aFFiRM.</div>
+            <div className={`logo text-2xl mb-2 ${!isDark && 'text-light-highlight'}`}>aFFiRM.</div>
             <p className={`text-sm ${isDark ? 'text-dark-muted' : 'text-light-muted'} max-w-xs`}>
               Dreamed in Athens, Designed in Warsaw, Alchemized in Digital Realms
             </p>

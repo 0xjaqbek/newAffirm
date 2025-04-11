@@ -15,13 +15,13 @@ const ThemeToggle = () => {
         flex items-center space-x-2 px-3 py-2 rounded-full transition-all duration-300
         ${isDark 
           ? 'bg-dark-surface text-dark-text hover:bg-opacity-70' 
-          : 'bg-light-surface text-light-contrast border border-light-border hover:bg-light-highlight/20'}
+          : 'bg-light-surface border border-light-border hover:bg-light-highlight/20'}
       `}
       whileTap={{ scale: 0.95 }}
       aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
       style={{
         backgroundColor: isDark ? 'var(--surface)' : 'var(--surface)',
-        color: isDark ? 'var(--text)' : 'var(--contrast)',
+        color: isDark ? 'var(--text)' : 'var(--highlight)',
         borderColor: !isDark ? 'var(--border)' : 'transparent'
       }}
     >
@@ -32,7 +32,7 @@ const ThemeToggle = () => {
         </>
       ) : (
         <>
-          <FiMoon style={{ color: 'var(--contrast)' }} size={16} />
+          <FiMoon style={{ color: 'var(--highlight)' }} size={16} />
           <span className="text-xs font-medium">Night Mode</span>
         </>
       )}

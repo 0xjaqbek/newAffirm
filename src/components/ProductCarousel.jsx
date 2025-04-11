@@ -339,8 +339,8 @@ function ProductCarousel() {
             <div className="flex flex-col space-y-2">
               <div className="mt-4">
                 <div className="flex justify-between items-center mb-3">            
-                  <button
-                    className={`btn btn-primary ${!isDark && 'bg-light-accent text-white hover:bg-light-accent/90'}`}
+                <button
+                    className={`btn ${isDark ? 'btn-primary' : 'bg-light-highlight text-white hover:bg-light-highlight/90'}`}
                     onClick={() => {
                       const stripeLinks = {
                         'buy_btn_1QOKLnK1N5l6JY7eOroi5V75': 'https://buy.stripe.com/9AQ5nH2pVfx7cgMaEI?locale=en&__embed_source=buy_btn_1QOKLnK1N5l6JY7eOroi5V75',
@@ -356,11 +356,13 @@ function ProductCarousel() {
                   </button>
                 </div>
                 <button
-                className={`btn btn-outline text-sm ${!isDark && 'border-light-accent text-light-accent hover:bg-light-highlight/10'}`}
-                onClick={() => setShowDetails(!showDetails)}
-              >
-                {showDetails ? 'Less Info' : 'More Info'}
-              </button>
+                  className={`btn btn-outline text-sm ${
+                    !isDark && 'border-light-highlight text-light-highlight hover:bg-light-highlight/10'
+                  }`}
+                  onClick={() => setShowDetails(!showDetails)}
+                >
+                  {showDetails ? 'Less Info' : 'More Info'}
+                </button>
               </div>
             </div>
           </div>

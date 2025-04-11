@@ -275,7 +275,7 @@ function GalleryCarousel() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
-            className={`btn ${isDark ? 'btn-primary' : 'bg-light-accent text-white'} px-6 py-2 rounded-full hover:bg-opacity-90 transition-all`}
+            className={`btn ${isDark ? 'btn-primary' : 'bg-light-highlight text-white'} px-6 py-2 rounded-full hover:bg-opacity-90 transition-all`}
             onClick={openFullscreen}
           >
             Open Full Size
