@@ -138,6 +138,7 @@ const MobileCarousel = ({ items, type }) => {
             disableOnInteraction: false,
             pauseOnMouseEnter: true,
           }}
+          speed={1000} 
           pagination={{
             clickable: true,
           }}
@@ -167,7 +168,7 @@ const MobileCarousel = ({ items, type }) => {
       {/* More Info Panel for Products */}
       {showDetails && type === 'product' && (
         <motion.div 
-          className={`${isDark ? 'bg-dark-surface/90' : 'bg-light-surface/90'} backdrop-blur-sm p-4 rounded-lg shadow-lg mx-auto max-w-sm mt-4`}
+          className={`${isDark ? 'bg-dark-surface/90' : 'bg-light-surface/90'} backdrop-blur-sm p-4 rounded-lg shadow-lg mx-auto max-w-sm -mt-28`}
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
