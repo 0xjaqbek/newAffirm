@@ -332,7 +332,7 @@ function ProductCarousel() {
             <div>
               <h3 className={`font-display font-bold text-xl ${isDark ? 'text-dark-text' : 'text-light-text'}`}>{currentProduct.name}</h3>
               <p className={`text-sm ${isDark ? 'text-dark-muted' : 'text-light-muted'}`}>Size: {currentProduct.size}</p>
-              <p className={`font-bold mt-1 ${isDark ? 'text-dark-accent' : 'text-light-accent'}`}>${currentProduct.price}</p>
+              <p className={`font-bold mt-1 ${isDark ? 'text-dark-accent' : 'text-light-highlight'}`}>${currentProduct.price}</p>
               <p className={`text-sm italic mt-1 ${isDark ? 'text-dark-text' : 'text-light-text'}`}>{currentProduct.description}</p>
             </div>
             
@@ -356,13 +356,15 @@ function ProductCarousel() {
                   </button>
                 </div>
                 <button
-                  className={`btn btn-outline text-sm ${
-                    !isDark && 'border-light-highlight text-light-highlight hover:bg-light-highlight/10'
-                  }`}
-                  onClick={() => setShowDetails(!showDetails)}
-                >
-                  {showDetails ? 'Less Info' : 'More Info'}
-                </button>
+  className={`btn text-sm ${
+    isDark 
+      ? 'border border-dark-accent text-dark-accent hover:bg-dark-accent hover:text-dark-text' 
+      : 'border border-light-highlight text-light-highlight hover:bg-light-highlight hover:text-white'
+  }`}
+  onClick={() => setShowDetails(!showDetails)}
+>
+  {showDetails ? 'Less Info' : 'More Info'}
+</button>
               </div>
             </div>
           </div>
