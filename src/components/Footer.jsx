@@ -1,6 +1,6 @@
 // src/components/Footer.jsx
 import React, { useContext } from 'react';
-import { FiTwitter, FiInstagram, FiGithub } from 'react-icons/fi';
+import { FiTwitter, FiInstagram, FiSend } from 'react-icons/fi';
 import ThemeToggle from './ThemeToggle';
 import { ThemeContext } from '../contexts/ThemeContext';
 
@@ -33,11 +33,11 @@ function Footer() {
               <a href="https://www.instagram.com/affirm.official/" target="_blank" rel="noopener noreferrer" className={`${isDark ? 'hover:text-dark-accent' : 'hover:text-light-highlight'}`}>
                 <FiInstagram size={20} />
               </a>
-              <a href="https://github.com/0xjaqbek/affirm" target="_blank" rel="noopener noreferrer" className={`${isDark ? 'hover:text-dark-accent' : 'hover:text-light-highlight'}`}>
-                <FiGithub size={20} />
+              <a href="https://t.me/affirmaiaiai" target="_blank" rel="noopener noreferrer" className={`${isDark ? 'hover:text-dark-accent' : 'hover:text-light-highlight'}`}>
+                <FiSend size={20} />
               </a>
             </div>
-            
+
             {/* Theme Toggle Button */}
             <div className="mt-4">
               <ThemeToggle />

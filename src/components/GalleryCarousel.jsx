@@ -244,12 +244,12 @@ function GalleryCarousel() {
               <Gallery setCurrentImage={setCurrentImage} theme={theme} />
             </PresentationControls>
             
-            <ContactShadows 
-              position={[0, -5, 0]} 
-              opacity={isDark ? 0.5 : 0.3} 
-              scale={30} 
-              blur={2}
-              far={20}
+            <ContactShadows
+              position={[0, 4, 0]}
+              opacity={isDark ? 0.1 : 0.1}
+              scale={200}
+              blur={20}
+              far={200}
             />
             
             <Environment preset={isDark ? "city" : "sunset"} />
