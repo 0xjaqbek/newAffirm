@@ -1,14 +1,17 @@
 // src/components/navbar.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { motion } from 'framer-motion';
 import { FiMenu, FiX } from 'react-icons/fi';
 import { useMobileDetector } from '../hooks/useMobileDetector';
+import { ThemeContext } from '../contexts/ThemeContext';
 
 function Navbar({ openModal, activeSection, setActiveSection }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [showLogoInHeader, setShowLogoInHeader] = useState(false);
   const isMobile = useMobileDetector();
+  const { theme } = useContext(ThemeContext);
+  const isDark = theme === 'dark';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -37,7 +40,11 @@ function Navbar({ openModal, activeSection, setActiveSection }) {
   return (
     <motion.header 
       className={`fixed top-0 left-0 right-0 z-50 py-4 transition-all duration-300 ${
-        scrolled ? 'bg-background/80 backdrop-blur-md shadow-md' : 'bg-transparent'
+        scrolled 
+          ? isDark 
+            ? 'bg-dark-background/80 backdrop-blur-md shadow-md' 
+            : 'bg-light-background/80 backdrop-blur-md shadow-md' 
+          : 'bg-transparent'
       }`}
       initial={{ y: -100 }}
       animate={{ y: 0 }}
@@ -47,7 +54,7 @@ function Navbar({ openModal, activeSection, setActiveSection }) {
         {/* Conditionally render the logo based on scroll position and device */}
         {(showLogoInHeader || !isMobile) && (
           <button 
-            className="logo text-lg hover:opacity-80 transition-opacity"
+            className={`logo text-lg hover:opacity-80 transition-opacity ${!isDark && 'text-light-accent'}`}
             onClick={() => setActiveSection('shop')}
           >
             aFFiRM.
@@ -61,19 +68,29 @@ function Navbar({ openModal, activeSection, setActiveSection }) {
         
         <div className="hidden md:flex items-center space-x-6">
           <button 
-            className={`transition-colors hover:text-accent ${activeSection === 'shop' ? 'text-accent' : 'text-text'}`}
+            className={`transition-colors hover:${isDark ? 'text-dark-accent' : 'text-light-highlight'} ${
+              activeSection === 'shop' 
+                ? isDark ? 'text-dark-accent' : 'text-light-accent' 
+                : isDark ? 'text-dark-text' : 'text-light-contrast'
+            }`}
             onClick={() => setActiveSection('shop')}
           >
             Shop
           </button>
           <button 
-            className={`transition-colors hover:text-accent ${activeSection === 'gallery' ? 'text-accent' : 'text-text'}`}
+            className={`transition-colors hover:${isDark ? 'text-dark-accent' : 'text-light-highlight'} ${
+              activeSection === 'gallery' 
+                ? isDark ? 'text-dark-accent' : 'text-light-accent' 
+                : isDark ? 'text-dark-text' : 'text-light-contrast'
+            }`}
             onClick={() => setActiveSection('gallery')}
           >
             Gallery
           </button>
           <button 
-            className="transition-colors hover:text-accent"
+            className={`transition-colors hover:${isDark ? 'text-dark-accent' : 'text-light-highlight'} ${
+              isDark ? 'text-dark-text' : 'text-light-contrast'
+            }`}
             onClick={() => openModal('manifesto')}
           >
             Manifesto
@@ -93,14 +110,22 @@ function Navbar({ openModal, activeSection, setActiveSection }) {
       {/* Mobile menu */}
       {isMenuOpen && (
         <motion.div 
-          className="md:hidden absolute top-full left-0 right-0 bg-surface p-4 shadow-lg"
+          className={`md:hidden absolute top-full left-0 right-0 ${
+            isDark ? 'bg-dark-surface' : 'bg-light-surface shadow-lg'
+          } p-4`}
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
           <div className="flex flex-col space-y-3">
             <button 
-              className={`py-2 px-4 rounded-md ${activeSection === 'shop' ? 'bg-accent/10 text-accent' : ''}`}
+              className={`py-2 px-4 rounded-md ${
+                activeSection === 'shop' 
+                  ? isDark 
+                    ? 'bg-dark-accent/10 text-dark-accent' 
+                    : 'bg-light-highlight/10 text-light-accent'
+                  : ''
+              }`}
               onClick={() => {
                 setActiveSection('shop');
                 setIsMenuOpen(false);
@@ -109,7 +134,13 @@ function Navbar({ openModal, activeSection, setActiveSection }) {
               Shop
             </button>
             <button 
-              className={`py-2 px-4 rounded-md ${activeSection === 'gallery' ? 'bg-accent/10 text-accent' : ''}`}
+              className={`py-2 px-4 rounded-md ${
+                activeSection === 'gallery' 
+                  ? isDark 
+                    ? 'bg-dark-accent/10 text-dark-accent' 
+                    : 'bg-light-highlight/10 text-light-accent'
+                  : ''
+              }`}
               onClick={() => {
                 setActiveSection('gallery');
                 setIsMenuOpen(false);

@@ -1,11 +1,12 @@
 // src/components/GalleryCarousel.jsx
-import React, { useRef, useState, useEffect, useMemo } from 'react';
+import React, { useRef, useState, useEffect, useMemo, useContext } from 'react';
 import { Canvas, useThree, useFrame } from '@react-three/fiber';
 import { useCursor, Image, Environment, PresentationControls, ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
 import { motion } from 'framer-motion';
-import MobileCarousel from './MobileCarousel'; // Import our new mobile component
+import MobileCarousel from './MobileCarousel'; // Import our mobile component
 import { useMobileDetector } from '../hooks/useMobileDetector'; // Import our hook
+import { ThemeContext } from '../contexts/ThemeContext';
 
 // In a real implementation, these would be your actual image URLs
 const IMAGES = [
@@ -25,11 +26,12 @@ const IMAGES = [
 ];
 
 // Refined ImageFrame component
-function ImageFrame({ url, index, setFocused, isFocused, totalImages, ...props }) {
+function ImageFrame({ url, index, setFocused, isFocused, totalImages, theme, ...props }) {
   const image = useRef();
   const [hovered, setHovered] = useState(false);
   const { viewport, camera } = useThree();
   useCursor(hovered);
+  const isDark = theme === 'dark';
   
   // Calculate scale based on viewport
   const baseScale = 2.5;
@@ -79,10 +81,11 @@ function ImageFrame({ url, index, setFocused, isFocused, totalImages, ...props }
       image.current.position.y = THREE.MathUtils.lerp(image.current.position.y, originalPosition.y + floatY, 0.06);
       image.current.position.z = THREE.MathUtils.lerp(image.current.position.z, originalPosition.z, 0.06);
       
-      // Adjust color based on hover
+      // Adjust color based on hover and theme
+      const baseColor = isDark ? 0.85 : 0.95;
       const targetColor = hovered 
         ? new THREE.Color(1, 1, 1)
-        : new THREE.Color(0.85, 0.85, 0.85);
+        : new THREE.Color(baseColor, baseColor, baseColor);
       image.current.material.color.lerp(targetColor, 0.1);
     }
   });
@@ -105,7 +108,7 @@ function ImageFrame({ url, index, setFocused, isFocused, totalImages, ...props }
 }
 
 // Gallery component with continuous rotation
-function Gallery({ setCurrentImage }) {
+function Gallery({ setCurrentImage, theme }) {
   const [focusedIndex, setFocusedIndex] = useState(null);
   const group = useRef();
   const rotationRef = useRef({ value: 0 });
@@ -165,6 +168,7 @@ function Gallery({ setCurrentImage }) {
           ]}
           setFocused={setFocusedIndex}
           isFocused={focusedIndex === i}
+          theme={theme}
         />
       ))}
     </group>
@@ -176,7 +180,9 @@ function GalleryCarousel() {
   const [currentImage, setCurrentImage] = useState(null);
   const [showFullscreen, setShowFullscreen] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
-  const isMobile = useMobileDetector(); // Use our custom hook
+  const isMobile = useMobileDetector(); 
+  const { theme } = useContext(ThemeContext);
+  const isDark = theme === 'dark';
 
   // Set loaded state after a short delay
   useEffect(() => {
@@ -199,10 +205,10 @@ function GalleryCarousel() {
     <div className="relative">
       <div className="carousel-container" style={{ height: '70vh' }}>
         {!isLoaded ? (
-          <div className="flex items-center justify-center h-full bg-background">
+          <div className={`flex items-center justify-center h-full ${isDark ? 'bg-dark-background' : 'bg-light-background'}`}>
             <div className="text-center">
-              <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-accent"></div>
-              <p className="mt-4 text-muted">Loading Gallery...</p>
+              <div className={`inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 ${isDark ? 'border-dark-accent' : 'border-light-accent'}`}></div>
+              <p className={`mt-4 ${isDark ? 'text-dark-muted' : 'text-light-muted'}`}>Loading Gallery...</p>
             </div>
           </div>
         ) : (
@@ -219,11 +225,11 @@ function GalleryCarousel() {
             }}
             frameloop="always" // Changed to always for smoother constant animation
           >
-            <color attach="background" args={['#121212']} />
-            <fog attach="fog" args={['#121212', 10, 40]} />
+            <color attach="background" args={[isDark ? '#121212' : '#F2F0EA']} />
+            <fog attach="fog" args={[isDark ? '#121212' : '#F2F0EA', 10, 40]} />
             
-            <ambientLight intensity={0.7} />
-            <spotLight position={[0, 10, 0]} intensity={1} angle={0.3} penumbra={1} castShadow />
+            <ambientLight intensity={isDark ? 0.7 : 0.9} />
+            <spotLight position={[0, 10, 0]} intensity={isDark ? 1 : 1.2} angle={0.3} penumbra={1} castShadow />
             
             <PresentationControls
               global
@@ -235,18 +241,18 @@ function GalleryCarousel() {
               snap={false}
               enabled={currentImage === null} // Disable controls when image is selected
             >
-              <Gallery setCurrentImage={setCurrentImage} />
+              <Gallery setCurrentImage={setCurrentImage} theme={theme} />
             </PresentationControls>
             
             <ContactShadows 
               position={[0, -5, 0]} 
-              opacity={0.5} 
+              opacity={isDark ? 0.5 : 0.3} 
               scale={30} 
               blur={2}
               far={20}
             />
             
-            <Environment preset="city" />
+            <Environment preset={isDark ? "city" : "sunset"} />
           </Canvas>
         )}
       </div>
@@ -258,7 +264,7 @@ function GalleryCarousel() {
         animate={{ opacity: isLoaded ? 1 : 0 }}
         transition={{ delay: 0.2 }}
       >
-        <p className="text-muted mb-2">
+        <p className={`${isDark ? 'text-dark-muted' : 'text-light-muted'} mb-2`}>
           {currentImage 
             ? "Click again to return to gallery view" 
             : "Click on an image to focus"}
@@ -269,7 +275,7 @@ function GalleryCarousel() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
-            className="btn btn-primary px-6 py-2 rounded-full bg-accent text-white hover:bg-opacity-90 transition-all"
+            className={`btn ${isDark ? 'btn-primary' : 'bg-light-accent text-white'} px-6 py-2 rounded-full hover:bg-opacity-90 transition-all`}
             onClick={openFullscreen}
           >
             Open Full Size

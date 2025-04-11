@@ -1,13 +1,14 @@
 // src/components/ProductCarousel.jsx
-import React, { useRef, useState, useEffect, useMemo } from 'react';
+import React, { useRef, useState, useEffect, useMemo, useContext } from 'react';
 import { Canvas, useThree, useFrame } from '@react-three/fiber';
 import { useCursor, Environment, PresentationControls, ContactShadows, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import { motion } from 'framer-motion';
-import MobileCarousel from './MobileCarousel'; // Import our new mobile component
-import { useMobileDetector } from '../hooks/useMobileDetector'; // Import our hook
+import MobileCarousel from './MobileCarousel'; 
+import { useMobileDetector } from '../hooks/useMobileDetector';
+import { ThemeContext } from '../contexts/ThemeContext';
 
-// Updated products with correct image paths to match your files
+// Products data remains the same
 const products = [
   { 
     id: 1, 
@@ -52,18 +53,15 @@ const products = [
 ];
 
 // This component represents a single product in the 3D space
-function ProductFrame({ product, index, setFocused, isFocused, groupRef, totalProducts, ...props }) {
+function ProductFrame({ product, index, setFocused, isFocused, groupRef, totalProducts, theme, ...props }) {
   const mesh = useRef();
   const [hovered, setHovered] = useState(false);
   const { viewport, camera } = useThree();
   useCursor(hovered);
+  const isDark = theme === 'dark';
   
   // Try to load the texture
-  const texture = useTexture(product.image, (texture) => {
-    console.log(`Texture loaded for ${product.name}:`, texture);
-  }, (error) => {
-    console.error(`Error loading texture for ${product.name}:`, error);
-  });
+  const texture = useTexture(product.image);
   
   // Base scale for products
   const baseScale = 2.2;
@@ -163,7 +161,7 @@ function ProductFrame({ product, index, setFocused, isFocused, groupRef, totalPr
 }
 
 // Products Gallery component for the 3D version
-function ProductsGallery({ setCurrentProduct }) {
+function ProductsGallery({ setCurrentProduct, theme }) {
   const [focusedIndex, setFocusedIndex] = useState(null);
   const group = useRef();
   const rotationRef = useRef({ value: 0 });
@@ -225,6 +223,7 @@ function ProductsGallery({ setCurrentProduct }) {
           groupRef={group}
           setFocused={setFocusedIndex}
           isFocused={focusedIndex === i}
+          theme={theme}
         />
       ))}
     </group>
@@ -236,7 +235,9 @@ function ProductCarousel() {
   const [currentProduct, setCurrentProduct] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
-  const isMobile = useMobileDetector(); // Use our custom hook
+  const isMobile = useMobileDetector();
+  const { theme } = useContext(ThemeContext);
+  const isDark = theme === 'dark';
 
   // Set loaded state after a short delay
   useEffect(() => {
@@ -254,10 +255,10 @@ function ProductCarousel() {
     <div className="relative">
       <div className="carousel-container" style={{ height: '60vh' }}>
         {!isLoaded ? (
-          <div className="flex items-center justify-center h-full bg-background">
+          <div className={`flex items-center justify-center h-full ${isDark ? 'bg-dark-background' : 'bg-light-background'}`}>
             <div className="text-center">
-              <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-accent"></div>
-              <p className="mt-4 text-muted">Loading Products...</p>
+              <div className={`inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 ${isDark ? 'border-dark-accent' : 'border-light-accent'}`}></div>
+              <p className={`mt-4 ${isDark ? 'text-dark-muted' : 'text-light-muted'}`}>Loading Products...</p>
             </div>
           </div>
         ) : (
@@ -274,11 +275,11 @@ function ProductCarousel() {
             }}
             frameloop="always"
           >
-            <color attach="background" args={['#121212']} />
-            <fog attach="fog" args={['#121212', 8, 30]} />
+            <color attach="background" args={[isDark ? '#121212' : '#F2F0EA']} />
+            <fog attach="fog" args={[isDark ? '#121212' : '#F2F0EA', 8, 30]} />
             
-            <ambientLight intensity={0.7} />
-            <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1} castShadow />
+            <ambientLight intensity={isDark ? 0.7 : 0.9} />
+            <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={isDark ? 1 : 1.2} castShadow />
             
             <PresentationControls
               global
@@ -290,18 +291,18 @@ function ProductCarousel() {
               snap={false}
               enabled={currentProduct === null}
             >
-              <ProductsGallery setCurrentProduct={setCurrentProduct} />
+              <ProductsGallery setCurrentProduct={setCurrentProduct} theme={theme} />
             </PresentationControls>
             
             <ContactShadows
               position={[0, -4, 0]}
-              opacity={0.5}
+              opacity={isDark ? 0.5 : 0.3}
               scale={20}
               blur={2}
               far={20}
             />
             
-            <Environment preset="city" />
+            <Environment preset={isDark ? "city" : "sunset"} />
           </Canvas>
         )}
       </div>
@@ -312,7 +313,7 @@ function ProductCarousel() {
         animate={{ opacity: isLoaded ? 1 : 0 }}
         transition={{ delay: 0.2 }}
       >
-        <p className="text-muted mb-2">
+        <p className={`mb-2 ${isDark ? 'text-dark-muted' : 'text-light-muted'}`}>
           {currentProduct 
             ? "Click product again to deselect" 
             : "Click on a product to view details"}
@@ -322,24 +323,24 @@ function ProductCarousel() {
       {/* Product details panel */}
       {currentProduct && (
         <motion.div
-          className="absolute left-0 right-0 mx-auto max-w-md bg-surface/90 backdrop-blur-sm p-6 rounded-lg shadow-lg"
+          className={`absolute left-0 right-0 mx-auto max-w-md ${isDark ? 'bg-dark-surface/90' : 'bg-light-surface/90'} backdrop-blur-sm p-6 rounded-lg shadow-lg`}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
           <div className="flex justify-between items-start">
             <div>
-              <h3 className="font-display font-bold text-xl">{currentProduct.name}</h3>
-              <p className="text-sm text-muted">Size: {currentProduct.size}</p>
-              <p className="text-accent font-bold mt-1">${currentProduct.price}</p>
-              <p className="text-sm italic mt-1">{currentProduct.description}</p>
+              <h3 className={`font-display font-bold text-xl ${isDark ? 'text-dark-text' : 'text-light-text'}`}>{currentProduct.name}</h3>
+              <p className={`text-sm ${isDark ? 'text-dark-muted' : 'text-light-muted'}`}>Size: {currentProduct.size}</p>
+              <p className={`font-bold mt-1 ${isDark ? 'text-dark-accent' : 'text-light-accent'}`}>${currentProduct.price}</p>
+              <p className={`text-sm italic mt-1 ${isDark ? 'text-dark-text' : 'text-light-text'}`}>{currentProduct.description}</p>
             </div>
             
             <div className="flex flex-col space-y-2">
               <div className="mt-4">
                 <div className="flex justify-between items-center mb-3">            
                   <button
-                    className="btn btn-primary"
+                    className={`btn btn-primary ${!isDark && 'bg-light-accent text-white hover:bg-light-accent/90'}`}
                     onClick={() => {
                       const stripeLinks = {
                         'buy_btn_1QOKLnK1N5l6JY7eOroi5V75': 'https://buy.stripe.com/9AQ5nH2pVfx7cgMaEI?locale=en&__embed_source=buy_btn_1QOKLnK1N5l6JY7eOroi5V75',
@@ -355,7 +356,7 @@ function ProductCarousel() {
                   </button>
                 </div>
                 <button
-                className="btn btn-outline text-sm"
+                className={`btn btn-outline text-sm ${!isDark && 'border-light-accent text-light-accent hover:bg-light-highlight/10'}`}
                 onClick={() => setShowDetails(!showDetails)}
               >
                 {showDetails ? 'Less Info' : 'More Info'}
@@ -366,7 +367,7 @@ function ProductCarousel() {
           
           {showDetails && (
             <motion.div
-              className="mt-4 text-sm"
+              className={`mt-4 text-sm ${isDark ? 'text-dark-text' : 'text-light-text'}`}
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               transition={{ duration: 0.3 }}
@@ -380,5 +381,4 @@ function ProductCarousel() {
   );
 }
 
-// Make sure to include this default export
 export default ProductCarousel;
