@@ -64,7 +64,7 @@ function ProductFrame({ product, index, setFocused, isFocused, groupRef, totalPr
   const texture = useTexture(product.image);
   
   // Base scale for products
-  const baseScale = 2.2;
+  const baseScale = 3;
   
   // Responsive scaling based on viewport
   const scaleFactor = useMemo(() => Math.min(viewport.width, viewport.height) / 12, [viewport]);
@@ -253,7 +253,7 @@ function ProductCarousel() {
   // Otherwise, render the 3D carousel for desktop
   return (
     <div className="relative">
-      <div className="carousel-container" style={{ height: '60vh' }}>
+      <div className="carousel-container" style={{ height: '75vh' }}>
         {!isLoaded ? (
           <div className={`flex items-center justify-center h-full ${isDark ? 'bg-dark-background' : 'bg-light-background'}`}>
             <div className="text-center">

@@ -1,32 +1,89 @@
 /* src/styles/swiper-coverflow.css */
 
-/* Základní styly pro Swiper */
+/* Base styles for Swiper */
 .swiper-container {
   width: 100%;
   padding-top: 30px;
-  padding-bottom: 30px;
+  padding-bottom: 50px;
+  overflow: visible !important;
 }
 
+/* Ensure 3D transforms work properly */
+.swiper-wrapper {
+  transform-style: preserve-3d;
+}
+
+/* Base slide styles */
 .swiper-slide {
   background-position: center;
   background-size: cover;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  /* Using transition-property to specifically animate what we need */
+  transition-property: transform, opacity, filter, box-shadow;
+  transition-duration: 800ms;
+  transition-timing-function: cubic-bezier(0.215, 0.610, 0.355, 1.000); /* Improved easing */
+  transform-origin: center center;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  perspective: 1200px;
+  opacity: 0.6;
+  filter: saturate(0.7) brightness(0.7);
+  will-change: transform, opacity, filter;
 }
 
-/* Dostosowanie efektu coverflow */
+/* Enhanced 3D effect - explicitly define these transforms for all slides */
+.swiper-slide-prev {
+  transform: translateX(5%) rotateY(25deg) scale(0.85) !important;
+  z-index: 5;
+  opacity: 0.75;
+  filter: saturate(0.85) brightness(0.85);
+  transition-duration: 800ms !important;
+}
+
+.swiper-slide-next {
+  transform: translateX(-5%) rotateY(-25deg) scale(0.85) !important;
+  z-index: 5;
+  opacity: 0.75;
+  filter: saturate(0.85) brightness(0.85);
+  transition-duration: 800ms !important;
+}
+
+/* Active slide */
 .swiper-slide-active {
   z-index: 10;
+  transform: rotateY(0deg) scale(1) !important;
+  opacity: 1;
+  filter: saturate(1) brightness(1);
   box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+  transition-duration: 800ms !important;
 }
 
-/* Efekt nachodzących cieni */
+/* Additional effect for slides more distant from active */
+.swiper-slide-prev ~ .swiper-slide-prev,
+.swiper-slide-next ~ .swiper-slide-next {
+  transform: translateX(10%) rotateY(35deg) scale(0.7) !important;
+  opacity: 0.5;
+  filter: saturate(0.6) brightness(0.6);
+  z-index: 3;
+}
+
+.swiper-slide-prev ~ .swiper-slide-prev ~ .swiper-slide,
+.swiper-slide-next ~ .swiper-slide-next ~ .swiper-slide {
+  transform: translateX(15%) rotateY(40deg) scale(0.6) !important;
+  opacity: 0.35;
+  filter: saturate(0.5) brightness(0.5);
+  z-index: 2;
+}
+
+/* Improved shadow effect with smoother gradient for 3D appearance */
 .swiper-slide-shadow-left,
 .swiper-slide-shadow-right {
-  background-image: linear-gradient(to left, rgba(18, 18, 18, 0.7), rgba(18, 18, 18, 0));
+  background-image: linear-gradient(to left, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0));
   border-radius: 8px;
+  transition: opacity 0.5s ease;
+  opacity: 0.7;
 }
 
-/* Customize pagination bullets */
+/* Enhanced pagination bullets */
 .swiper-pagination-bullet {
   background: var(--muted, #8A8A8A);
   opacity: 0.6;
@@ -42,17 +99,18 @@
   border-radius: 4px;
 }
 
-/* Customize navigation buttons */
+/* Customized navigation buttons */
 .swiper-button-next,
 .swiper-button-prev {
   color: var(--accent, #8A9A5B);
   background-color: rgba(0, 0, 0, 0.3);
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   display: flex;
   align-items: center;
-  justify-center: center;
+  justify-content: center;
+  transition: all 0.3s ease;
 }
 
 .swiper-button-next:after,
@@ -61,75 +119,26 @@
   font-weight: bold;
 }
 
-/* Pulse animation only for Buy Now button, not for More Info button */
-.swiper-slide-active .btn-primary {
+.swiper-button-next:hover,
+.swiper-button-prev:hover {
+  background-color: rgba(0, 0, 0, 0.5);
+  transform: scale(1.1);
+}
+
+/* Improved 3D effect for the coverflow */
+.swiper-3d .swiper-slide-shadow-left,
+.swiper-3d .swiper-slide-shadow-right {
+  background-image: linear-gradient(to left, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0));
+}
+
+/* Pulse animation only for Buy Now button */
+.swiper-slide-active .pulse-button {
   animation: pulse 2s infinite;
 }
 
-/* We're not applying the pulse animation to btn-outline class anymore */
-
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(138, 154, 91, 0.4);
-  }
-  70% {
-    transform: scale(1.05);
-    box-shadow: 0 0 0 10px rgba(138, 154, 91, 0);
-  }
-  100% {
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(138, 154, 91, 0);
-  }
-}
-
-/* Stylizacja slajdów produktów */
-.swiper-slide .bg-surface {
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  overflow: hidden;
-}
-
-/* Dodatkowe efekty dla slajdów nieaktywnych */
-.swiper-slide:not(.swiper-slide-active) {
-  opacity: 0.7;
-  filter: saturate(0.8) brightness(0.8);
-}
-
-/* Animacja wejścia dla aktywnego slajdu */
-.swiper-slide-active {
-  animation: slideIn 0.5s ease forwards;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0.7;
-    transform: scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* Responsywność dla małych ekranów */
-@media (max-width: 480px) {
-  .swiper-button-next,
-  .swiper-button-prev {
-    width: 30px;
-    height: 30px;
-  }
-  
-  .swiper-button-next:after,
-  .swiper-button-prev:after {
-    font-size: 14px;
-  }
-}
-
-/* src/components/pulse-button.css */
-
-.pulse-button {
-  animation: pulse 2s infinite;
+/* Dark mode version with olive green shadow */
+.dark .pulse-button {
+  animation: pulseDark 2s infinite;
 }
 
 @keyframes pulse {
@@ -147,11 +156,6 @@
   }
 }
 
-/* Dark mode version with olive green shadow */
-.dark .pulse-button {
-  animation: pulseDark 2s infinite;
-}
-
 @keyframes pulseDark {
   0% {
     transform: scale(1);
@@ -164,5 +168,32 @@
   100% {
     transform: scale(1);
     box-shadow: 0 0 0 0 rgba(138, 154, 91, 0);
+  }
+}
+
+/* Styling product slides */
+.swiper-slide .bg-surface {
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  transition: all 0.5s ease;
+}
+
+/* Responsive design for small screens */
+@media (max-width: 480px) {
+  .swiper-button-next,
+  .swiper-button-prev {
+    width: 30px;
+    height: 30px;
+  }
+  
+  .swiper-button-next:after,
+  .swiper-button-prev:after {
+    font-size: 14px;
+  }
+  
+  .swiper-container {
+    padding-top: 20px;
+    padding-bottom: 40px;
   }
 }

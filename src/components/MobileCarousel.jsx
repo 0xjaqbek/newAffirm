@@ -141,6 +141,7 @@ const MobileCarousel = ({ items, type }) => {
           speed={1000} 
           pagination={{
             clickable: true,
+            dynamicBullets: true,
           }}
           navigation={true}
           modules={[EffectCoverflow, Pagination, Navigation, Autoplay]}
