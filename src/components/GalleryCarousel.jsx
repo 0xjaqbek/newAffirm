@@ -3,7 +3,7 @@ import React, { useRef, useState, useEffect, useMemo, useContext } from 'react';
 import { Canvas, useThree, useFrame } from '@react-three/fiber';
 import { useCursor, Image, Environment, PresentationControls, ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import MobileCarousel from './MobileCarousel'; // Import our mobile component
 import { useMobileDetector } from '../hooks/useMobileDetector'; // Import our hook
 import { ThemeContext } from '../contexts/ThemeContext';
@@ -18,15 +18,13 @@ const IMAGES = [
   "images/155800.png",
   "images/160144.png",
   "images/affirm_knight.png",
-  "images/AFFIRM3_1.png",
   "images/affirmwowods.png",
   "images/ai16z_eliza_affirm_store3.png", 
-  "images/CHILL GUY W T-SHIRT bez tła 2.png",
   "images/dasha_terminal 1.png"
 ];
 
 // Refined ImageFrame component
-function ImageFrame({ url, index, setFocused, isFocused, totalImages, theme, ...props }) {
+function ImageFrame({ url, index, setFocused, isFocused, totalImages, theme, featuredIndex, userInteracted, centralPosition, ...props }) {
   const image = useRef();
   const [hovered, setHovered] = useState(false);
   const { viewport, camera } = useThree();
@@ -40,6 +38,12 @@ function ImageFrame({ url, index, setFocused, isFocused, totalImages, theme, ...
   // Store original position for animation
   const originalPosition = useMemo(() => new THREE.Vector3(...props.position), [props.position]);
   
+  // Check if this image is featured
+  const isFeatured = featuredIndex === index;
+  
+  // Calculate distance from central viewing position (front of carousel)
+  const [distanceFromCenter, setDistanceFromCenter] = useState(1);
+  
   // Smooth animation with continuous movement
   useFrame((state) => {
     if (!image.current) return;
@@ -48,6 +52,16 @@ function ImageFrame({ url, index, setFocused, isFocused, totalImages, theme, ...
     const lookPos = new THREE.Vector3();
     camera.getWorldPosition(lookPos);
     image.current.lookAt(lookPos);
+    
+    // Calculate current position in world space
+    const worldPos = new THREE.Vector3();
+    image.current.getWorldPosition(worldPos);
+    
+    // Calculate normalized distance from the central viewing position (0-1 range)
+    // This helps determine which image is most prominently in view
+    const distToCenter = worldPos.distanceTo(centralPosition);
+    const normalizedDist = Math.min(distToCenter / (viewport.width * 0.5), 1);
+    setDistanceFromCenter(normalizedDist);
     
     // Subtle floating animation - different for each image using index
     const floatSpeed = 0.5 + (index / totalImages) * 0.5;
@@ -70,9 +84,21 @@ function ImageFrame({ url, index, setFocused, isFocused, totalImages, theme, ...
       
       // Full brightness
       image.current.material.color.lerp(new THREE.Color(1, 1, 1), 0.1);
-    } else {
+    } else if (isFeatured && !userInteracted) {
+      // Featured image is slightly larger but not as large as user-focused
+      image.current.scale.x = THREE.MathUtils.lerp(image.current.scale.x, baseScale * scaleFactor * 1.5, 0.05);
+      image.current.scale.y = THREE.MathUtils.lerp(image.current.scale.y, baseScale * scaleFactor * 1.5, 0.05);
+      
+      // Keep in place but add enhanced floating
+      image.current.position.x = THREE.MathUtils.lerp(image.current.position.x, originalPosition.x, 0.05);
+      image.current.position.y = THREE.MathUtils.lerp(image.current.position.y, originalPosition.y + floatY * 1.5, 0.05);
+      image.current.position.z = THREE.MathUtils.lerp(image.current.position.z, originalPosition.z, 0.05);
+      
+      // Full brightness for featured image
+      image.current.material.color.lerp(new THREE.Color(1, 1, 1), 0.1);
+    } else if (hovered) {
       // Normal size with hover effect
-      const targetScale = baseScale * scaleFactor * (hovered ? 1.15 : 1);
+      const targetScale = baseScale * scaleFactor * 1.15;
       image.current.scale.x = THREE.MathUtils.lerp(image.current.scale.x, targetScale, 0.06);
       image.current.scale.y = THREE.MathUtils.lerp(image.current.scale.y, targetScale, 0.06);
       
@@ -81,11 +107,28 @@ function ImageFrame({ url, index, setFocused, isFocused, totalImages, theme, ...
       image.current.position.y = THREE.MathUtils.lerp(image.current.position.y, originalPosition.y + floatY, 0.06);
       image.current.position.z = THREE.MathUtils.lerp(image.current.position.z, originalPosition.z, 0.06);
       
-      // Adjust color based on hover and theme
+      // Full brightness for hovered state
+      image.current.material.color.lerp(new THREE.Color(1, 1, 1), 0.1);
+    } else {
+      // Normal size, not interacted with
+      const targetScale = baseScale * scaleFactor;
+      image.current.scale.x = THREE.MathUtils.lerp(image.current.scale.x, targetScale, 0.06);
+      image.current.scale.y = THREE.MathUtils.lerp(image.current.scale.y, targetScale, 0.06);
+      
+      // Return to original position with floating effect
+      image.current.position.x = THREE.MathUtils.lerp(image.current.position.x, originalPosition.x, 0.06);
+      image.current.position.y = THREE.MathUtils.lerp(image.current.position.y, originalPosition.y + floatY, 0.06);
+      image.current.position.z = THREE.MathUtils.lerp(image.current.position.z, originalPosition.z, 0.06);
+      
+      // Adjust color based on distance from center and theme
       const baseColor = isDark ? 0.85 : 0.95;
-      const targetColor = hovered 
-        ? new THREE.Color(1, 1, 1)
-        : new THREE.Color(baseColor, baseColor, baseColor);
+      // Fade images based on distance from center - further images are darker
+      const brightnessAdjustment = 1 - (normalizedDist * 0.3);
+      const targetColor = new THREE.Color(
+        baseColor * brightnessAdjustment,
+        baseColor * brightnessAdjustment,
+        baseColor * brightnessAdjustment
+      );
       image.current.material.color.lerp(targetColor, 0.1);
     }
   });
@@ -110,46 +153,127 @@ function ImageFrame({ url, index, setFocused, isFocused, totalImages, theme, ...
 // Gallery component with continuous rotation
 function Gallery({ setCurrentImage, theme }) {
   const [focusedIndex, setFocusedIndex] = useState(null);
+  const [featuredIndex, setFeaturedIndex] = useState(0); // Start with first image featured
+  const [userInteracted, setUserInteracted] = useState(false);
+  const [rotationPaused, setRotationPaused] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [frontPositionIndex, setFrontPositionIndex] = useState(0);
+  
   const group = useRef();
-  const rotationRef = useRef({ value: 0 });
-  const { viewport } = useThree();
+  const rotationRef = useRef(0); // Track rotation for continuous motion
+  const elapsedTimeRef = useRef(0); // Track total elapsed time
+  const lastUpdateTimeRef = useRef(0);
+  const { viewport, camera } = useThree();
+  
+  // Central viewing position - directly in front of the carousel
+  const centralPosition = useMemo(() => new THREE.Vector3(0, 0, viewport.width * 0.25), [viewport]);
+  
+  // Track all image positions to determine which is closest to front
+  const imagePositions = useRef([]);
   
   // Adjust spacing between images
   const radius = useMemo(() => Math.min(viewport.width, viewport.height) * 0.45, [viewport]);
   const theta = useMemo(() => (2 * Math.PI) / IMAGES.length, []);
   
+  // Time settings
+  const featureDuration = 5; // seconds to feature each image
+  
+  // Update current image when focus or featured index changes
   useEffect(() => {
     if (focusedIndex !== null) {
       setCurrentImage(IMAGES[focusedIndex]);
+      setUserInteracted(true);
+      setRotationPaused(true);
+    } else if (featuredIndex !== null && !userInteracted) {
+      setCurrentImage(IMAGES[featuredIndex]);
     } else {
       setCurrentImage(null);
     }
-  }, [focusedIndex, setCurrentImage]);
+  }, [focusedIndex, featuredIndex, userInteracted, setCurrentImage]);
   
-  // Smooth constant rotation
+  // Reset user interaction when all images are deselected
+  useEffect(() => {
+    if (focusedIndex === null) {
+      // Add a small delay before resetting user interaction
+      const timer = setTimeout(() => {
+        setUserInteracted(false);
+        setRotationPaused(false);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [focusedIndex]);
+  
+  // Advanced position detection and rotation control
   useFrame((state, delta) => {
+    // Update elapsed time
+    elapsedTimeRef.current += delta;
+    
     if (!group.current) return;
     
-    // Constant smooth rotation when not focused
-    if (focusedIndex === null) {
-      // Store rotation value separately for smooth transitions
-      rotationRef.current.value += delta * 0.15; // Constant speed
-      group.current.rotation.y = rotationRef.current.value;
+    // Initialize image positions array if empty
+    if (imagePositions.current.length === 0) {
+      imagePositions.current = IMAGES.map((_, i) => {
+        const angle = i * theta;
+        return new THREE.Vector3(
+          radius * Math.sin(angle),
+          0,
+          radius * Math.cos(angle)
+        );
+      });
+    }
+    
+    if (rotationPaused) {
+      // When an image is focused by user, rotate to center it
+      if (focusedIndex !== null) {
+        // Calculate target rotation to center the focused image
+        const targetRotation = -focusedIndex * theta;
+        
+        // Get current rotation
+        const currentRotation = group.current.rotation.y;
+        
+        // Calculate shortest path to target rotation
+        let diff = targetRotation - currentRotation;
+        if (diff > Math.PI) diff -= 2 * Math.PI;
+        if (diff < -Math.PI) diff += 2 * Math.PI;
+        
+        // Smooth rotation to focused image
+        group.current.rotation.y += diff * 0.05;
+      }
     } else {
-      // When an image is focused, smoothly rotate to center it
-      const targetRotation = Math.PI / 4 - focusedIndex * theta;
-      const currentRotation = group.current.rotation.y % (Math.PI * 2);
-      
-      // Calculate shortest path to target rotation
-      let diff = targetRotation - currentRotation;
-      if (diff > Math.PI) diff -= Math.PI * 2;
-      if (diff < -Math.PI) diff += Math.PI * 2;
-      
-      // Smooth rotation to focused image
-      group.current.rotation.y += diff * 0.05;
-      
-      // Update stored rotation for when focus is released
-      rotationRef.current.value = group.current.rotation.y;
+      // Auto rotation - continuous smooth movement
+      if (!isTransitioning) {
+        // Automatically rotate the entire carousel
+        group.current.rotation.y -= delta * 0.15; // steady rotation speed
+        
+        // Calculate which image is currently at the front position
+        // Use rotation to find the forward-most image
+        const currentRotation = group.current.rotation.y;
+        
+        // Find the image closest to the front based on its rotation angle
+        const normalizedRotation = ((currentRotation % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+        const rotationIndex = Math.round(normalizedRotation / theta) % IMAGES.length;
+        const frontIndex = (IMAGES.length - rotationIndex) % IMAGES.length;
+        
+        // Only update if front position has changed
+        if (frontIndex !== frontPositionIndex) {
+          setFrontPositionIndex(frontIndex);
+          
+          // Check if we should update the featured image
+          if (!isTransitioning && elapsedTimeRef.current - lastUpdateTimeRef.current > featureDuration) {
+            // Begin transition to new featured image
+            setIsTransitioning(true);
+            
+            // Update the featured image to the one at front
+            setFeaturedIndex(frontIndex);
+            
+            // After the transition completes
+            setTimeout(() => {
+              setIsTransitioning(false);
+              lastUpdateTimeRef.current = elapsedTimeRef.current;
+            }, 0.3 * 1000); // Brief transition time
+          }
+        }
+      }
     }
   });
 
@@ -168,6 +292,9 @@ function Gallery({ setCurrentImage, theme }) {
           ]}
           setFocused={setFocusedIndex}
           isFocused={focusedIndex === i}
+          featuredIndex={featuredIndex}
+          userInteracted={userInteracted}
+          centralPosition={centralPosition}
           theme={theme}
         />
       ))}
@@ -223,7 +350,7 @@ function GalleryCarousel() {
               depth: true,
               failIfMajorPerformanceCaveat: false
             }}
-            frameloop="always" // Changed to always for smoother constant animation
+            frameloop="always"
           >
             <color attach="background" args={[isDark ? '#121212' : '#F2F0EA']} />
             <fog attach="fog" args={[isDark ? '#121212' : '#F2F0EA', 10, 40]} />
@@ -283,37 +410,39 @@ function GalleryCarousel() {
         )}
       </motion.div>
       
-      {/* Fullscreen viewer */}
-      {showFullscreen && (
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 bg-black bg-opacity-95 flex items-center justify-center"
-          onClick={() => setShowFullscreen(false)}
-        >
-          <motion.img 
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            src={currentImage} 
-            alt="Full size" 
-            className="max-w-full max-h-full p-4 object-contain"
-          />
-          <button 
-            className="absolute top-6 right-6 text-white text-xl bg-black bg-opacity-50 rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-80 transition-all"
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowFullscreen(false);
-            }}
+      {/* Fullscreen viewer with AnimatePresence */}
+      <AnimatePresence>
+        {showFullscreen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black bg-opacity-95 flex items-center justify-center"
+            onClick={() => setShowFullscreen(false)}
           >
-            ✕
-          </button>
-        </motion.div>
-      )}
+            <motion.img 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              src={currentImage} 
+              alt="Full size" 
+              className="max-w-full max-h-full p-4 object-contain"
+            />
+            <button 
+              className="absolute top-6 right-6 text-white text-xl bg-black bg-opacity-50 rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-80 transition-all"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowFullscreen(false);
+              }}
+            >
+              ✕
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
 
-// Make sure to include this default export
 export default GalleryCarousel;
