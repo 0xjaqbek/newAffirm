@@ -3,7 +3,7 @@ import React, { useRef, useState, useEffect, useMemo, useContext } from 'react';
 import { Canvas, useThree, useFrame } from '@react-three/fiber';
 import { useCursor, Environment, PresentationControls, ContactShadows, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import MobileCarousel from './MobileCarousel'; 
 import { useMobileDetector } from '../hooks/useMobileDetector';
 import { ThemeContext } from '../contexts/ThemeContext';
@@ -14,7 +14,7 @@ const products = [
     id: 1, 
     name: "Olive aFFiRM Tee", 
     size: "L", 
-    color: "#8A9A5B", 
+    color: "#FFFFFF", 
     price: 47, 
     description: "Manifest Your Reality",
     stripeId: "buy_btn_1QOKLnK1N5l6JY7eOroi5V75",
@@ -24,7 +24,7 @@ const products = [
     id: 2, 
     name: "Olive aFFiRM Tee", 
     size: "M", 
-    color: "#8A9A5B", 
+    color: "#FFFFFF", 
     price: 47, 
     description: "Create Your Perfect World",
     stripeId: "buy_btn_1QOKNFK1N5l6JY7e6zEMyXOG",
@@ -34,7 +34,7 @@ const products = [
     id: 3, 
     name: "Pure White aFFiRM Tee", 
     size: "L", 
-    color: "#F5F5F5", 
+    color: "#FFFFFF", 
     price: 47, 
     description: "Embrace Pure Energy",
     stripeId: "buy_btn_1QSG0JK1N5l6JY7ehIiH2UrZ",
@@ -44,7 +44,7 @@ const products = [
     id: 4, 
     name: "Pure White aFFiRM Tee", 
     size: "M", 
-    color: "#F5F5F5", 
+    color: "#FFFFFF", 
     price: 47, 
     description: "Pure Light Within",
     stripeId: "buy_btn_1QSFtuK1N5l6JY7eVuMSXjGE",
@@ -53,7 +53,7 @@ const products = [
 ];
 
 // This component represents a single product in the 3D space
-function ProductFrame({ product, index, setFocused, isFocused, groupRef, totalProducts, theme, ...props }) {
+function ProductFrame({ product, index, setFocused, isFocused, totalProducts, theme, featuredIndex, userInteracted, ...props }) {
   const mesh = useRef();
   const [hovered, setHovered] = useState(false);
   const { viewport, camera } = useThree();
@@ -76,6 +76,9 @@ function ProductFrame({ product, index, setFocused, isFocused, groupRef, totalPr
   const floatSpeed = 0.5 + (index / totalProducts) * 0.5;
   const floatHeight = 0.05 + (index % 3) * 0.02;
   
+  // Check if this product is featured
+  const isFeatured = featuredIndex === index;
+  
   useFrame((state) => {
     if (!mesh.current) return;
     
@@ -88,7 +91,7 @@ function ProductFrame({ product, index, setFocused, isFocused, groupRef, totalPr
     mesh.current.lookAt(lookPos);
     
     if (isFocused) {
-      // Focused product is larger and moved forward
+      // User-focused product is larger and moved forward
       mesh.current.scale.x = THREE.MathUtils.lerp(mesh.current.scale.x, baseScale * scaleFactor * 1.9, 0.08);
       mesh.current.scale.y = THREE.MathUtils.lerp(mesh.current.scale.y, baseScale * scaleFactor * 1.9, 0.08);
       
@@ -101,11 +104,23 @@ function ProductFrame({ product, index, setFocused, isFocused, groupRef, totalPr
       mesh.current.position.y = THREE.MathUtils.lerp(mesh.current.position.y, targetPosition.y + floatY * 0.3, 0.08);
       mesh.current.position.z = THREE.MathUtils.lerp(mesh.current.position.z, targetPosition.z, 0.08);
       
-      // Brighter color for focused product
-      mesh.current.material.color.lerp(new THREE.Color(1, 1, 1), 0.05);
-    } else {
-      // Normal size with hover effect
-      const targetScale = baseScale * scaleFactor * (hovered ? 1.15 : 1);
+      // Always use white color
+      mesh.current.material.color.lerp(new THREE.Color("#FFFFFF"), 0.05);
+    } else if (isFeatured && !userInteracted) {
+      // Featured product is slightly larger but not as large as user-focused
+      mesh.current.scale.x = THREE.MathUtils.lerp(mesh.current.scale.x, baseScale * scaleFactor * 1.5, 0.05);
+      mesh.current.scale.y = THREE.MathUtils.lerp(mesh.current.scale.y, baseScale * scaleFactor * 1.5, 0.05);
+      
+      // Keep in place but add enhanced floating
+      mesh.current.position.x = THREE.MathUtils.lerp(mesh.current.position.x, originalPosition.x, 0.05);
+      mesh.current.position.y = THREE.MathUtils.lerp(mesh.current.position.y, originalPosition.y + floatY * 1.5, 0.05);
+      mesh.current.position.z = THREE.MathUtils.lerp(mesh.current.position.z, originalPosition.z, 0.05);
+      
+      // Always use white color
+      mesh.current.material.color.lerp(new THREE.Color("#FFFFFF"), 0.05);
+    } else if (hovered) {
+      // Hovered but not focused or featured
+      const targetScale = baseScale * scaleFactor * 1.15;
       mesh.current.scale.x = THREE.MathUtils.lerp(mesh.current.scale.x, targetScale, 0.05);
       mesh.current.scale.y = THREE.MathUtils.lerp(mesh.current.scale.y, targetScale, 0.05);
       
@@ -114,29 +129,23 @@ function ProductFrame({ product, index, setFocused, isFocused, groupRef, totalPr
       mesh.current.position.y = THREE.MathUtils.lerp(mesh.current.position.y, originalPosition.y + floatY, 0.05);
       mesh.current.position.z = THREE.MathUtils.lerp(mesh.current.position.z, originalPosition.z, 0.05);
       
-      // Adjust color for hover state or normal state
-      const targetColor = hovered ? 
-        new THREE.Color(product.color) : 
-        new THREE.Color(adjustColorBrightness(product.color, -0.0001));
-      mesh.current.material.color.lerp(targetColor, 0.05);
+      // Always use white color
+      mesh.current.material.color.lerp(new THREE.Color("#FFFFFF"), 0.05);
+    } else {
+      // Normal size, not interacted with
+      const targetScale = baseScale * scaleFactor;
+      mesh.current.scale.x = THREE.MathUtils.lerp(mesh.current.scale.x, targetScale, 0.05);
+      mesh.current.scale.y = THREE.MathUtils.lerp(mesh.current.scale.y, targetScale, 0.05);
+      
+      // Return to original position with floating effect
+      mesh.current.position.x = THREE.MathUtils.lerp(mesh.current.position.x, originalPosition.x, 0.05);
+      mesh.current.position.y = THREE.MathUtils.lerp(mesh.current.position.y, originalPosition.y + floatY, 0.05);
+      mesh.current.position.z = THREE.MathUtils.lerp(mesh.current.position.z, originalPosition.z, 0.05);
+      
+      // Always use white color
+      mesh.current.material.color.lerp(new THREE.Color("#FFFFFF"), 0.05);
     }
   });
-  
-  // Helper function to adjust color brightness
-  function adjustColorBrightness(hex, brightness) {
-    // Convert hex to RGB
-    let r = parseInt(hex.slice(1, 3), 16);
-    let g = parseInt(hex.slice(3, 5), 16);
-    let b = parseInt(hex.slice(5, 7), 16);
-    
-    // Adjust brightness
-    r = Math.max(0, Math.min(255, r + Math.round(r * brightness)));
-    g = Math.max(0, Math.min(255, g + Math.round(g * brightness)));
-    b = Math.max(0, Math.min(255, b + Math.round(b * brightness)));
-    
-    // Convert back to hex
-    return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
-  }
 
   return (
     <mesh
@@ -152,7 +161,7 @@ function ProductFrame({ product, index, setFocused, isFocused, groupRef, totalPr
     >
       <boxGeometry args={[1, 1.5, 0.1]} />
       <meshStandardMaterial 
-        color={product.color} 
+        color={"#FFFFFF"} // Always white
         map={texture}
         transparent={true}
       />
@@ -163,52 +172,139 @@ function ProductFrame({ product, index, setFocused, isFocused, groupRef, totalPr
 // Products Gallery component for the 3D version
 function ProductsGallery({ setCurrentProduct, theme }) {
   const [focusedIndex, setFocusedIndex] = useState(null);
+  const [featuredIndex, setFeaturedIndex] = useState(0); // Start with first product featured
+  const [userInteracted, setUserInteracted] = useState(false);
+  const [rotationPaused, setRotationPaused] = useState(false);
+  const [cardVisible, setCardVisible] = useState(true); // Control product card visibility
+  const [transitionState, setTransitionState] = useState("stable"); // "stable", "fading-out", "changing", "fading-in"
   const group = useRef();
-  const rotationRef = useRef({ value: 0 });
+  const timerRef = useRef(null);
+  const rotationRef = useRef(0); // Keep track of continuous rotation
   const { viewport } = useThree();
   
   // Calculate radius based on viewport and number of products
   const radius = useMemo(() => Math.min(viewport.width, viewport.height) * 0.35, [viewport]);
   const theta = useMemo(() => (2 * Math.PI) / products.length, []);
   
-  // Update current product when focus changes
+  // Time settings for featuring products
+  const featureDuration = 5; // seconds to feature each product
+  const transitionDuration = 1; // seconds for transition
+  const fadeOutDuration = 0.4; // seconds for card fade out
+  const changeProductDuration = 0.2; // seconds pause between fade out and fade in
+  const fadeInDuration = 0.4; // seconds for card fade in
+
+  // Set up auto-rotation timer with continuous rotation
   useEffect(() => {
-    if (focusedIndex !== null) {
+    if (!userInteracted) {
+      timerRef.current = setInterval(() => {
+        // Start the transition sequence
+        setTransitionState("fading-out");
+        
+        // After fade out, change the product
+        setTimeout(() => {
+          setTransitionState("changing");
+          setCardVisible(false); // Hide card during the change
+          
+          setTimeout(() => {
+            setFeaturedIndex(prevIndex => (prevIndex + 1) % products.length);
+            setTransitionState("fading-in");
+            setCardVisible(true); // Show card again
+            
+            // After fade in completes, return to stable state
+            setTimeout(() => {
+              setTransitionState("stable");
+            }, fadeInDuration * 1000);
+          }, changeProductDuration * 1000);
+        }, fadeOutDuration * 1000);
+      }, (featureDuration + transitionDuration) * 1000);
+    } else {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+      // When user interacts, ensure we're in stable state
+      setTransitionState("stable");
+    }
+    
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, [userInteracted, products.length]);
+  
+  // Update current product when focus or featured index changes
+  useEffect(() => {
+    if (!cardVisible) {
+      setCurrentProduct(null);
+    } else if (focusedIndex !== null) {
       setCurrentProduct(products[focusedIndex]);
+      setUserInteracted(true);
+      setRotationPaused(true);
+    } else if (featuredIndex !== null && !userInteracted) {
+      setCurrentProduct(products[featuredIndex]);
     } else {
       setCurrentProduct(null);
     }
-  }, [focusedIndex, setCurrentProduct]);
+  }, [focusedIndex, featuredIndex, userInteracted, cardVisible, setCurrentProduct]);
   
-  // Smooth constant rotation
+  // Reset user interaction when all products are deselected
+  useEffect(() => {
+    if (focusedIndex === null) {
+      // Add a small delay before resetting user interaction
+      const timer = setTimeout(() => {
+        setUserInteracted(false);
+        setRotationPaused(false);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [focusedIndex]);
+  
+  // Rotation control for continuous motion
   useFrame((state, delta) => {
     if (!group.current) return;
     
-    // Constant smooth rotation when not focused
-    if (focusedIndex === null) {
-      // Store rotation value separately for smooth transitions
-      rotationRef.current.value += delta * 0.15; // Constant speed
-      group.current.rotation.y = rotationRef.current.value;
+    if (rotationPaused) {
+      // When a product is focused by user, rotate to center it
+      if (focusedIndex !== null) {
+        // Calculate target rotation to center the focused product at the front
+        // We add rotationRef.current to maintain continuous rotation
+        const targetRotation = rotationRef.current - (focusedIndex * theta);
+        
+        // Get current rotation
+        const currentRotation = group.current.rotation.y;
+        
+        // Calculate shortest path to target rotation
+        let diff = targetRotation - currentRotation;
+        if (diff > Math.PI) diff -= 2 * Math.PI;
+        if (diff < -Math.PI) diff += 2 * Math.PI;
+        
+        // Apply smooth rotation
+        group.current.rotation.y += diff * 0.05;
+      }
     } else {
-      // When a product is focused, smoothly rotate to center it
-      const targetRotation = Math.PI / 4 - focusedIndex * theta;
-      const currentRotation = group.current.rotation.y % (Math.PI * 2);
+      // Auto rotation - always rotate to have featured product at front
+      // Update the continuous rotation reference
+      rotationRef.current += delta * 0.02; // Small constant rotation
+      
+      // Calculate target rotation to center the featured product
+      // Using rotationRef as base ensures continuous rotation
+      const targetRotation = rotationRef.current - (featuredIndex * theta);
+      
+      // Get current rotation
+      const currentRotation = group.current.rotation.y;
       
       // Calculate shortest path to target rotation
       let diff = targetRotation - currentRotation;
-      if (diff > Math.PI) diff -= Math.PI * 2;
-      if (diff < -Math.PI) diff += Math.PI * 2;
+      if (diff > Math.PI) diff -= 2 * Math.PI;
+      if (diff < -Math.PI) diff += 2 * Math.PI;
       
-      // Smooth rotation to focused product
-      group.current.rotation.y += diff * 0.05;
-      
-      // Update stored rotation for when focus is released
-      rotationRef.current.value = group.current.rotation.y;
+      // Apply smooth rotation - slower than user interaction
+      group.current.rotation.y += diff * 0.02;
     }
   });
   
   return (
-    <group ref={group} position={[0, 0, 0]} rotation={[0, Math.PI / 4, 0]}>
+    <group ref={group} position={[0, 0, 0]}>
       {products.map((product, i) => (
         <ProductFrame
           key={product.id}
@@ -220,9 +316,10 @@ function ProductsGallery({ setCurrentProduct, theme }) {
             0,
             radius * Math.cos(i * theta)
           ]}
-          groupRef={group}
           setFocused={setFocusedIndex}
           isFocused={focusedIndex === i}
+          featuredIndex={featuredIndex}
+          userInteracted={userInteracted}
           theme={theme}
         />
       ))}
@@ -244,6 +341,14 @@ function ProductCarousel() {
     const timer = setTimeout(() => setIsLoaded(true), 800);
     return () => clearTimeout(timer);
   }, []);
+
+  // When a product is first selected, we want less details mode
+  useEffect(() => {
+    if (currentProduct) {
+      // Start with less details mode
+      setShowDetails(false);
+    }
+  }, [currentProduct]);
 
   // If on a mobile device, render the mobile-friendly carousel
   if (isMobile) {
@@ -320,67 +425,78 @@ function ProductCarousel() {
         </p>
       </motion.div>
       
-      {/* Product details panel */}
-      {currentProduct && (
-        <motion.div
-          className={`absolute left-0 right-0 mx-auto max-w-md ${isDark ? 'bg-dark-surface/90' : 'bg-light-surface/90'} backdrop-blur-sm p-6 rounded-lg shadow-lg`}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-        >
-          <div className="flex justify-between items-start">
-            <div>
-              <h3 className={`font-display font-bold text-xl ${isDark ? 'text-dark-text' : 'text-light-text'}`}>{currentProduct.name}</h3>
-              <p className={`text-sm ${isDark ? 'text-dark-muted' : 'text-light-muted'}`}>Size: {currentProduct.size}</p>
-              <p className={`font-bold mt-1 ${isDark ? 'text-dark-accent' : 'text-light-highlight'}`}>${currentProduct.price}</p>
-              <p className={`text-sm italic mt-1 ${isDark ? 'text-dark-text' : 'text-light-text'}`}>{currentProduct.description}</p>
-            </div>
-            
-            <div className="flex flex-col space-y-2">
-              <div className="mt-4">
-                <div className="flex justify-between items-center mb-3">            
-                <button
-                    className={`btn ${isDark ? 'btn-primary' : 'bg-light-highlight text-white hover:bg-light-highlight/90'}`}
-                    onClick={() => {
-                      const stripeLinks = {
-                        'buy_btn_1QOKLnK1N5l6JY7eOroi5V75': 'https://buy.stripe.com/9AQ5nH2pVfx7cgMaEI?locale=en&__embed_source=buy_btn_1QOKLnK1N5l6JY7eOroi5V75',
-                        'buy_btn_1QOKNFK1N5l6JY7e6zEMyXOG': 'https://buy.stripe.com/aEU7vP5C7bgRfsY5kp?locale=en&__embed_source=buy_btn_1QOKNFK1N5l6JY7e6zEMyXOG',
-                        'buy_btn_1QSG0JK1N5l6JY7ehIiH2UrZ': 'https://buy.stripe.com/3cs8zT8OjckVeoU28f?locale=en&__embed_source=buy_btn_1QSG0JK1N5l6JY7ehIiH2UrZ',
-                        'buy_btn_1QSFtuK1N5l6JY7eVuMSXjGE': 'https://buy.stripe.com/9AQcQ97KfacN0y428e?locale=en&__embed_source=buy_btn_1QSFtuK1N5l6JY7eVuMSXjGE'
-                      };
-                      
-                      window.open(stripeLinks[currentProduct.stripeId] || '#', '_blank');
-                    }}
+      {/* Product details panel with smooth fade animation */}
+      <AnimatePresence>
+        {currentProduct && (
+          <motion.div
+            key={currentProduct.id} // Important for AnimatePresence to track unique items
+            className={`absolute left-0 right-0 mx-auto max-w-md ${isDark ? 'bg-dark-surface/90' : 'bg-light-surface/90'} backdrop-blur-sm p-6 rounded-lg shadow-lg`}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            transition={{ 
+              duration: 0.4,
+              opacity: { duration: 0.4 },
+              y: { duration: 0.3 }
+            }}
+          >
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className={`font-display font-bold text-xl ${isDark ? 'text-dark-text' : 'text-light-text'}`}>{currentProduct.name}</h3>
+                <p className={`text-sm ${isDark ? 'text-dark-muted' : 'text-light-muted'}`}>Size: {currentProduct.size}</p>
+                <p className={`font-bold mt-1 ${isDark ? 'text-dark-accent' : 'text-light-highlight'}`}>${currentProduct.price}</p>
+                <p className={`text-sm italic mt-1 ${isDark ? 'text-dark-text' : 'text-light-text'}`}>{currentProduct.description}</p>
+              </div>
+              
+              <div className="flex flex-col space-y-2">
+                <div className="mt-4">
+                  <div className="flex justify-between items-center mb-3">            
+                  <button
+                      className={`btn ${isDark ? 'btn-primary' : 'bg-light-highlight text-white hover:bg-light-highlight/90'}`}
+                      onClick={() => {
+                        const stripeLinks = {
+                          'buy_btn_1QOKLnK1N5l6JY7eOroi5V75': 'https://buy.stripe.com/9AQ5nH2pVfx7cgMaEI?locale=en&__embed_source=buy_btn_1QOKLnK1N5l6JY7eOroi5V75',
+                          'buy_btn_1QOKNFK1N5l6JY7e6zEMyXOG': 'https://buy.stripe.com/aEU7vP5C7bgRfsY5kp?locale=en&__embed_source=buy_btn_1QOKNFK1N5l6JY7e6zEMyXOG',
+                          'buy_btn_1QSG0JK1N5l6JY7ehIiH2UrZ': 'https://buy.stripe.com/3cs8zT8OjckVeoU28f?locale=en&__embed_source=buy_btn_1QSG0JK1N5l6JY7ehIiH2UrZ',
+                          'buy_btn_1QSFtuK1N5l6JY7eVuMSXjGE': 'https://buy.stripe.com/9AQcQ97KfacN0y428e?locale=en&__embed_source=buy_btn_1QSFtuK1N5l6JY7eVuMSXjGE'
+                        };
+                        
+                        window.open(stripeLinks[currentProduct.stripeId] || '#', '_blank');
+                      }}
+                    >
+                      Buy Now
+                    </button>
+                  </div>
+                  <button
+                    className={`btn text-sm ${
+                      isDark 
+                        ? 'border border-dark-accent text-dark-accent hover:bg-dark-accent hover:text-dark-text' 
+                        : 'border border-light-highlight text-light-highlight hover:bg-light-highlight hover:text-white'
+                    }`}
+                    onClick={() => setShowDetails(!showDetails)}
                   >
-                    Buy Now
+                    {showDetails ? 'Less Info' : 'More Info'}
                   </button>
                 </div>
-                <button
-  className={`btn text-sm ${
-    isDark 
-      ? 'border border-dark-accent text-dark-accent hover:bg-dark-accent hover:text-dark-text' 
-      : 'border border-light-highlight text-light-highlight hover:bg-light-highlight hover:text-white'
-  }`}
-  onClick={() => setShowDetails(!showDetails)}
->
-  {showDetails ? 'Less Info' : 'More Info'}
-</button>
               </div>
             </div>
-          </div>
-          
-          {showDetails && (
-            <motion.div
-              className={`mt-4 text-sm ${isDark ? 'text-dark-text' : 'text-light-text'}`}
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              transition={{ duration: 0.3 }}
-            >
-              <p className="mb-4">Each aFFiRM tee comes with an embedded NFC tag, connecting you instantly to meditations and affirmations. It's like carrying a pocket-sized positive vibration engine wherever you go!</p>
-            </motion.div>
-          )}
-        </motion.div>
-      )}
+            
+            <AnimatePresence>
+              {showDetails && (
+                <motion.div
+                  className={`mt-4 text-sm ${isDark ? 'text-dark-text' : 'text-light-text'}`}
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <p className="mb-4">Each aFFiRM tee comes with an embedded NFC tag, connecting you instantly to meditations and affirmations. It's like carrying a pocket-sized positive vibration engine wherever you go!</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

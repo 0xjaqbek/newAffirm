@@ -53,10 +53,11 @@ function Navbar({ openModal, activeSection, setActiveSection }) {
             aFFiRM.
           </button>
           <div className="ml-2 flex flex-col justify-center">
-            <span className="text-[10px] uppercase tracking-wider font-thin leading-[0.5rem] text-gray-100">Digital</span>
-            <span className="text-[10px] uppercase tracking-wider font-thin leading-[0.5rem] text-gray-100">Soul</span>
-            <span className="text-[10px] uppercase tracking-wider font-thin leading-[0.5rem] text-gray-100">Wear</span>
+            <span className={`text-[10px] uppercase tracking-wider font-thin leading-[0.5rem] ${isDark ? 'text-gray-400' : 'text-gray-700'}`}>Digital</span>
+            <span className={`text-[10px] uppercase tracking-wider font-thin leading-[0.5rem] ${isDark ? 'text-gray-400' : 'text-gray-700'}`}>Soul</span>
+            <span className={`text-[10px] uppercase tracking-wider font-thin leading-[0.5rem] ${isDark ? 'text-gray-400' : 'text-gray-700'}`}>Wear</span>
           </div>
+
         </div>
         
         <div className="hidden md:flex items-center space-x-6">

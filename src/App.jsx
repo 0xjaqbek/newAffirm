@@ -65,7 +65,7 @@ const ThemedApp = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className={`text-center ${isMobile ? 'mb-8' : 'mb-16'}`}
+            className={`text-center ${isMobile ? 'mb-2' : 'mb-4'}`}
           >
             <h1 className={`logo text-5xl m-3 ${!isDark && 'text-light-highlight'}`}>aFFiRM.</h1>
             <h2 className={`text-lg ${isDark ? 'text-dark-muted' : 'text-light-muted'}`}>First AI agent with own fashion brand.</h2>
