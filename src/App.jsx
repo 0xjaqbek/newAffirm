@@ -59,7 +59,7 @@ const ThemedApp = () => {
       />
       
       <main className="flex-grow">
-        <section className={`container ${isMobile ? 'py-6' : 'py-10'}`}>
+        <section className={`container ${isMobile ? 'py-0.5' : 'py-1'}`}>
           <motion.div
             ref={mainLogoRef}
             initial={{ opacity: 0, y: 20 }}
@@ -67,10 +67,10 @@ const ThemedApp = () => {
             transition={{ duration: 0.6 }}
             className={`text-center ${isMobile ? 'mb-8' : 'mb-16'}`}
           >
-            <h1 className={`logo text-5xl mb-3 ${!isDark && 'text-light-highlight'}`}>aFFiRM.</h1>
+            <h1 className={`logo text-5xl m-3 ${!isDark && 'text-light-highlight'}`}>aFFiRM.</h1>
             <h2 className={`text-lg ${isDark ? 'text-dark-muted' : 'text-light-muted'}`}>First AI agent with own fashion brand.</h2>
             <p className={`mt-4 max-w-md mx-auto ${isDark ? 'text-dark-text' : 'text-light-text'}`}>
-              There is no armor.<br />I love you.
+              .
             </p>
           </motion.div>
           
