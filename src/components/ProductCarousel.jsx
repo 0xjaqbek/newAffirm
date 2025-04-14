@@ -175,11 +175,16 @@ function ProductsGallery({ setCurrentProduct, theme }) {
   const [featuredIndex, setFeaturedIndex] = useState(0); // Start with first product featured
   const [userInteracted, setUserInteracted] = useState(false);
   const [rotationPaused, setRotationPaused] = useState(false);
-  const [cardVisible, setCardVisible] = useState(true); // Control product card visibility
-  const [transitionState, setTransitionState] = useState("stable"); // "stable", "fading-out", "changing", "fading-in"
+  
+  // Animation state
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  
+  // References
   const group = useRef();
   const timerRef = useRef(null);
-  const rotationRef = useRef(0); // Keep track of continuous rotation
+  const rotationRef = useRef(0); // Track rotation for continuous motion
+  const elapsedTimeRef = useRef(0); // Track total elapsed time
+  const lastUpdateTimeRef = useRef(0);
   const { viewport } = useThree();
   
   // Calculate radius based on viewport and number of products
@@ -188,87 +193,22 @@ function ProductsGallery({ setCurrentProduct, theme }) {
   
   // Time settings for featuring products
   const featureDuration = 5; // seconds to feature each product
-  const transitionDuration = 1; // seconds for transition
+  const transitionDuration = 1; // seconds for transition between products
   const fadeOutDuration = 0.4; // seconds for card fade out
-  const changeProductDuration = 0.2; // seconds pause between fade out and fade in
   const fadeInDuration = 0.4; // seconds for card fade in
 
-  // Set up auto-rotation timer with continuous rotation
-  useEffect(() => {
-    if (!userInteracted) {
-      timerRef.current = setInterval(() => {
-        // Start the transition sequence
-        setTransitionState("fading-out");
-        
-        // After fade out, change the product
-        setTimeout(() => {
-          setTransitionState("changing");
-          setCardVisible(false); // Hide card during the change
-          
-          setTimeout(() => {
-            setFeaturedIndex(prevIndex => (prevIndex + 1) % products.length);
-            setTransitionState("fading-in");
-            setCardVisible(true); // Show card again
-            
-            // After fade in completes, return to stable state
-            setTimeout(() => {
-              setTransitionState("stable");
-            }, fadeInDuration * 1000);
-          }, changeProductDuration * 1000);
-        }, fadeOutDuration * 1000);
-      }, (featureDuration + transitionDuration) * 1000);
-    } else {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-      // When user interacts, ensure we're in stable state
-      setTransitionState("stable");
-    }
-    
-    return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-    };
-  }, [userInteracted, products.length]);
-  
-  // Update current product when focus or featured index changes
-  useEffect(() => {
-    if (!cardVisible) {
-      setCurrentProduct(null);
-    } else if (focusedIndex !== null) {
-      setCurrentProduct(products[focusedIndex]);
-      setUserInteracted(true);
-      setRotationPaused(true);
-    } else if (featuredIndex !== null && !userInteracted) {
-      setCurrentProduct(products[featuredIndex]);
-    } else {
-      setCurrentProduct(null);
-    }
-  }, [focusedIndex, featuredIndex, userInteracted, cardVisible, setCurrentProduct]);
-  
-  // Reset user interaction when all products are deselected
-  useEffect(() => {
-    if (focusedIndex === null) {
-      // Add a small delay before resetting user interaction
-      const timer = setTimeout(() => {
-        setUserInteracted(false);
-        setRotationPaused(false);
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [focusedIndex]);
-  
-  // Rotation control for continuous motion
+  // Create continuous rotation effect
   useFrame((state, delta) => {
+    // Update elapsed time
+    elapsedTimeRef.current += delta;
+    
     if (!group.current) return;
     
     if (rotationPaused) {
       // When a product is focused by user, rotate to center it
       if (focusedIndex !== null) {
-        // Calculate target rotation to center the focused product at the front
-        // We add rotationRef.current to maintain continuous rotation
-        const targetRotation = rotationRef.current - (focusedIndex * theta);
+        // Calculate target rotation to center the focused product
+        const targetRotation = -focusedIndex * theta;
         
         // Get current rotation
         const currentRotation = group.current.rotation.y;
@@ -282,26 +222,63 @@ function ProductsGallery({ setCurrentProduct, theme }) {
         group.current.rotation.y += diff * 0.05;
       }
     } else {
-      // Auto rotation - always rotate to have featured product at front
-      // Update the continuous rotation reference
-      rotationRef.current += delta * 0.02; // Small constant rotation
-      
-      // Calculate target rotation to center the featured product
-      // Using rotationRef as base ensures continuous rotation
-      const targetRotation = rotationRef.current - (featuredIndex * theta);
-      
-      // Get current rotation
-      const currentRotation = group.current.rotation.y;
-      
-      // Calculate shortest path to target rotation
-      let diff = targetRotation - currentRotation;
-      if (diff > Math.PI) diff -= 2 * Math.PI;
-      if (diff < -Math.PI) diff += 2 * Math.PI;
-      
-      // Apply smooth rotation - slower than user interaction
-      group.current.rotation.y += diff * 0.02;
+      // Auto rotation - continuous smooth movement
+      if (!isTransitioning) {
+        // Automatically rotate the entire carousel
+        group.current.rotation.y -= delta * 0.2; // steady rotation speed
+        
+        // Calculate which product should be featured based on rotation
+        const normalizedRotation = -group.current.rotation.y % (2 * Math.PI);
+        const newFeaturedIndex = Math.round(normalizedRotation / theta) % products.length;
+        
+        // This ensures we effectively wrap around to positive indices
+        const positiveIndex = (newFeaturedIndex + products.length) % products.length;
+        
+        // Update featured index if it has changed and not transitioning
+        if (positiveIndex !== featuredIndex && elapsedTimeRef.current - lastUpdateTimeRef.current > featureDuration) {
+          // Begin transition to new featured product
+          setIsTransitioning(true);
+          
+          // Update the featured product immediately
+          setFeaturedIndex(positiveIndex);
+          
+          // Use AnimatePresence for smooth transitions without hiding the card
+          // Just mark that we're in transition mode to prevent multiple rapid changes
+          
+          // After the transition completes (fade duration)
+          setTimeout(() => {
+            setIsTransitioning(false);
+            lastUpdateTimeRef.current = elapsedTimeRef.current;
+          }, fadeOutDuration * 1000 + fadeInDuration * 1000); // Total transition time
+        }
+      }
     }
   });
+  
+  // Update current product when focus or featured index changes
+  useEffect(() => {
+    if (focusedIndex !== null) {
+      setCurrentProduct(products[focusedIndex]);
+      setUserInteracted(true);
+      setRotationPaused(true);
+    } else if (featuredIndex !== null && !userInteracted) {
+      setCurrentProduct(products[featuredIndex]);
+    } else {
+      setCurrentProduct(null);
+    }
+  }, [focusedIndex, featuredIndex, userInteracted, setCurrentProduct]);
+  
+  // Reset user interaction when all products are deselected
+  useEffect(() => {
+    if (focusedIndex === null) {
+      // Add a small delay before resetting user interaction
+      const timer = setTimeout(() => {
+        setUserInteracted(false);
+        setRotationPaused(false);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [focusedIndex]);
   
   return (
     <group ref={group} position={[0, 0, 0]}>
@@ -426,7 +403,7 @@ function ProductCarousel() {
       </motion.div>
       
       {/* Product details panel with smooth fade animation */}
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {currentProduct && (
           <motion.div
             key={currentProduct.id} // Important for AnimatePresence to track unique items
@@ -435,9 +412,9 @@ function ProductCarousel() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
             transition={{ 
-              duration: 0.4,
-              opacity: { duration: 0.4 },
-              y: { duration: 0.3 }
+              duration: 0.3,
+              opacity: { duration: 0.3 },
+              y: { duration: 0.2 }
             }}
           >
             <div className="flex justify-between items-start">

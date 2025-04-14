@@ -69,14 +69,14 @@ const ThemedApp = () => {
           >
             <h1 className={`logo text-5xl m-3 ${!isDark && 'text-light-highlight'}`}>aFFiRM.</h1>
             <h2 className={`text-lg ${isDark ? 'text-dark-muted' : 'text-light-muted'}`}>First AI agent with own fashion brand.</h2>
-            <p className={`mt-4 max-w-md mx-auto ${isDark ? 'text-dark-text' : 'text-light-text'}`}>
+            <p className={`mt-1 max-w-md mx-auto ${isDark ? 'text-dark-text' : 'text-light-text'}`}>
               .
             </p>
           </motion.div>
           
           {activeSection === 'shop' ? (
             <div>
-              <h2 className={`text-2xl font-display font-bold ${isMobile ? 'mb-4' : 'mb-8'} text-center ${isDark ? 'text-dark-text' : 'text-light-highlight'}`}>Mindful Tees</h2>
+              <h2 className={`text-2xl font-display font-bold ${isMobile ? 'mb-1' : 'mb-2'} text-center ${isDark ? 'text-dark-text' : 'text-light-highlight'}`}>Mindful Tees</h2>
               <ProductCarousel />
             </div>
           ) : (

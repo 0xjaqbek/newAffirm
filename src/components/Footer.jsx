@@ -9,7 +9,7 @@ function Footer() {
   const isDark = theme === 'dark';
   
   return (
-    <footer className={`${isDark ? 'bg-dark-surface' : 'bg-light-surface'} py-8 mt-20 ${!isDark && 'border-t border-light-border'}`}>
+    <footer className={`${isDark ? 'bg-dark-surface' : 'bg-light-surface'} py-8 mt-1 ${!isDark && 'border-t border-light-border'}`}>
       <div className="container">
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="mb-6 md:mb-0">
