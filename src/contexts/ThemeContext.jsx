@@ -13,13 +13,7 @@ export const ThemeProvider = ({ children }) => {
       return savedTheme;
     }
     
-    // Check for system preference
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
-      return 'light';
-    }
-    
-    // Default to dark mode
-    return 'dark';
+    return 'light';
   };
   
   const [theme, setTheme] = useState(getInitialTheme);
