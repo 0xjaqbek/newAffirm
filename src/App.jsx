@@ -10,6 +10,13 @@ import AuthModal from './components/AuthModal';
 import { useMobileDetector } from './hooks/useMobileDetector';
 import { ThemeProvider, ThemeContext } from './contexts/ThemeContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { SEED_CARDS } from './data/seedCards';
+
+// Seed demo cards into localStorage if inventory is empty
+const existing = localStorage.getItem('affirm_cards');
+if (!existing || JSON.parse(existing).length === 0) {
+  localStorage.setItem('affirm_cards', JSON.stringify(SEED_CARDS));
+}
 
 const ThemedApp = () => {
   const [activeModal, setActiveModal] = useState(null);
