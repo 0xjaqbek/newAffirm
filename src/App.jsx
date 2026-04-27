@@ -11,11 +11,16 @@ import { useMobileDetector } from './hooks/useMobileDetector';
 import { ThemeProvider, ThemeContext } from './contexts/ThemeContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { SEED_CARDS } from './data/seedCards';
+import { SEED_ORDERS } from './data/seedOrders';
 
-// Seed demo cards into localStorage if inventory is empty
-const existing = localStorage.getItem('affirm_cards');
-if (!existing || JSON.parse(existing).length === 0) {
+// Seed demo data into localStorage if empty
+const existingCards = localStorage.getItem('affirm_cards');
+if (!existingCards || JSON.parse(existingCards).length === 0) {
   localStorage.setItem('affirm_cards', JSON.stringify(SEED_CARDS));
+}
+const existingOrders = localStorage.getItem('affirm_orders');
+if (!existingOrders || JSON.parse(existingOrders).length === 0) {
+  localStorage.setItem('affirm_orders', JSON.stringify(SEED_ORDERS));
 }
 
 const ThemedApp = () => {
