@@ -8,6 +8,7 @@ import CardFilters from './CardFilters';
 import { useMobileDetector } from '../hooks/useMobileDetector';
 import { ThemeContext } from '../contexts/ThemeContext';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import ContactModal from './ContactModal';
 
 function DesktopCardCarousel({ products, setCurrentProduct, theme }) {
   const [focusedIndex, setFocusedIndex] = useState(null);
@@ -134,6 +135,7 @@ function ProductCarousel() {
   const [cards] = useLocalStorage('affirm_cards', []);
   const [filters, setFilters] = useState({ search: '', set: '', rarity: '', type: '' });
   const [currentProduct, setCurrentProduct] = useState(null);
+  const [contactCard, setContactCard] = useState(null);
   const isMobile = useMobileDetector();
   const { theme } = useContext(ThemeContext);
   const isDark = theme === 'dark';
@@ -148,9 +150,7 @@ function ProductCarousel() {
     });
   }, [cards, filters]);
 
-  const contactToBuy = () => {
-    document.querySelector('footer')?.scrollIntoView({ behavior: 'smooth' });
-  };
+  const contactToBuy = (card) => setContactCard(card);
 
   if (isMobile) {
     return (
@@ -216,13 +216,19 @@ function ProductCarousel() {
                 </p>
                 <button
                   className={`mt-3 btn ${isDark ? 'btn-primary' : 'bg-light-highlight text-white hover:bg-light-highlight/90'}`}
-                  onClick={contactToBuy}
+                  onClick={() => contactToBuy(currentProduct)}
                 >
                   Contact to Buy
                 </button>
               </div>
             </div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {contactCard && (
+          <ContactModal card={contactCard} onClose={() => setContactCard(null)} />
         )}
       </AnimatePresence>
     </div>

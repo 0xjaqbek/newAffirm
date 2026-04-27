@@ -5,10 +5,12 @@ import { FiMaximize } from 'react-icons/fi';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { EffectCoverflow, Pagination, Navigation, Autoplay } from 'swiper/modules';
 import { ThemeContext } from '../contexts/ThemeContext';
+import ContactModal from './ContactModal';
 
 const MobileCarousel = ({ items, type }) => {
   const [showFullscreen, setShowFullscreen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [contactCard, setContactCard] = useState(null);
   const [containerHeight, setContainerHeight] = useState(type === 'product' ? 450 : 350);
   const swiperRef = useRef(null);
   const { theme } = useContext(ThemeContext);
@@ -35,7 +37,7 @@ const MobileCarousel = ({ items, type }) => {
         <div className="flex flex-col items-center mt-3">
           <button
             className={`btn px-6 py-2 rounded-full ${isDark ? 'btn-primary' : 'bg-light-highlight text-white hover:bg-light-highlight/90'}`}
-            onClick={() => document.querySelector('footer')?.scrollIntoView({ behavior: 'smooth' })}
+            onClick={() => setContactCard(item)}
           >
             Contact to Buy
           </button>
@@ -106,6 +108,10 @@ const MobileCarousel = ({ items, type }) => {
           </div>
           <button className="absolute top-6 right-6 text-white text-xl bg-black bg-opacity-50 rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-80 transition-all" onClick={(e) => { e.stopPropagation(); setShowFullscreen(false); }}>✕</button>
         </motion.div>
+      )}
+
+      {contactCard && (
+        <ContactModal card={contactCard} onClose={() => setContactCard(null)} />
       )}
     </div>
   );
