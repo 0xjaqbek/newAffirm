@@ -18,15 +18,18 @@ function DesktopCardCarousel({ products, setCurrentProduct, theme }) {
   const isDark = theme === 'dark';
   const count = products.length;
   const angleStep = count > 0 ? 360 / count : 0;
-  const radius = Math.max(300, count * 70);
+  const radius = Math.max(280, count * 42);
+  const perspective = Math.max(1600, radius * 3);
 
   // Auto-rotate: update DOM directly each frame — no React state updates per frame
   useEffect(() => {
     if (focusedIndex !== null) return;
+    // Slow down proportionally with more cards so it doesn't blur past
+    const speed = Math.min(0.022, 0.18 / count);
     let last = null;
     const animate = (ts) => {
       if (last !== null && containerRef.current) {
-        rotRef.current -= (ts - last) * 0.022;
+        rotRef.current -= (ts - last) * speed;
         containerRef.current.style.transform = `rotateY(${rotRef.current}deg)`;
       }
       last = ts;
@@ -74,7 +77,7 @@ function DesktopCardCarousel({ products, setCurrentProduct, theme }) {
     <div
       style={{
         height: '70vh',
-        perspective: '1200px',
+        perspective: `${perspective}px`,
         perspectiveOrigin: 'center 40%',
         display: 'flex',
         alignItems: 'center',
