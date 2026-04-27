@@ -1,7 +1,7 @@
 // src/components/ProductCarousel.jsx
 import React, { useRef, useState, useEffect, useMemo, useContext } from 'react';
 import { Canvas, useThree, useFrame } from '@react-three/fiber';
-import { useCursor, Environment, PresentationControls, ContactShadows, useTexture } from '@react-three/drei';
+import { useCursor, Environment, PresentationControls, ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
 import { motion, AnimatePresence } from 'framer-motion';
 import MobileCarousel from './MobileCarousel';
@@ -17,7 +17,19 @@ function ProductFrame({ product, index, setFocused, isFocused, totalProducts, th
   useCursor(hovered);
   const isDark = theme === 'dark';
 
-  const texture = useTexture(product.image);
+  // pokemontcg.io CDN has no CORS headers — WebGL textures are blocked by the browser.
+  // Use Pokemon type colors for 3D cards; actual card image shows in the click overlay.
+  const cardColor = useMemo(() => {
+    const typeColors = {
+      Fire: '#e25822', Water: '#3b9ddd', Grass: '#4caf50',
+      Electric: '#f9a825', Psychic: '#d81b60', Fighting: '#8d4e27',
+      Dark: '#4a4a6a', Steel: '#9e9e9e', Dragon: '#5c3199',
+      Fairy: '#f48fb1', Normal: '#a0a0a0', Poison: '#9c27b0',
+      Ground: '#c17f3a', Rock: '#8d7248', Bug: '#7cb342',
+      Ghost: '#5c3566', Ice: '#81d4fa', Flying: '#64b5f6',
+    };
+    return typeColors[product.types?.[0]] || (isDark ? '#3a3a5c' : '#5c5c8a');
+  }, [product.types, isDark]);
 
   const baseScale = 3;
   const scaleFactor = useMemo(() => Math.min(viewport.width, viewport.height) / 12, [viewport]);
@@ -79,7 +91,7 @@ function ProductFrame({ product, index, setFocused, isFocused, totalProducts, th
       scale={[baseScale * scaleFactor, baseScale * scaleFactor * 1.4, 0.1]}
     >
       <boxGeometry args={[1, 1, 0.1]} />
-      <meshStandardMaterial color="#FFFFFF" map={texture} transparent={true} />
+      <meshStandardMaterial color={cardColor} />
     </mesh>
   );
 }
@@ -290,6 +302,9 @@ function ProductCarousel() {
             transition={{ duration: 0.3 }}
           >
             <div className="flex justify-between items-start gap-4">
+              {currentProduct.image && (
+                <img src={currentProduct.image} alt={currentProduct.name} className="h-28 w-auto rounded shadow-md shrink-0" />
+              )}
               <div className="flex-1">
                 <h3 className={`font-display font-bold text-xl ${isDark ? 'text-dark-text' : 'text-light-text'}`}>{currentProduct.name}</h3>
                 <p className={`text-sm ${isDark ? 'text-dark-muted' : 'text-light-muted'}`}>{currentProduct.set}</p>
