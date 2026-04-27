@@ -73,7 +73,7 @@ export const SEED_CARDS = [
   {
     id: 'fossil-4',
     name: 'Gengar',
-    image: 'https://images.pokemontcg.io/fossil/4_hires.png',
+    image: 'https://images.pokemontcg.io/fossil/4.png',
     set: 'Fossil',
     series: 'Base',
     rarity: 'Rare Holo',
@@ -84,9 +84,9 @@ export const SEED_CARDS = [
     addedAt: now,
   },
   {
-    id: 'fossil-6',
+    id: 'fossil-8',
     name: 'Lapras',
-    image: 'https://images.pokemontcg.io/fossil/6_hires.png',
+    image: 'https://images.pokemontcg.io/fossil/8.png',
     set: 'Fossil',
     series: 'Base',
     rarity: 'Rare',
@@ -99,7 +99,7 @@ export const SEED_CARDS = [
   {
     id: 'jungle-4',
     name: 'Jolteon',
-    image: 'https://images.pokemontcg.io/jungle/4_hires.png',
+    image: 'https://images.pokemontcg.io/jungle/4.png',
     set: 'Jungle',
     series: 'Base',
     rarity: 'Rare Holo',
